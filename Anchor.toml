@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-sol_vs_eth = "AHX2zXNjyVNBWMyMUcpPtcxiuWG44ZzEmPdKe4z8KnSC"
+sol_vs_eth = "64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD"
 
 [registry]
 url = "https://api.apr.dev"
@@ -22,6 +22,9 @@ address= "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"
 [[test.validator.clone]]
 # eth/usd feed
 address = "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB"
+
+[test.validator]
+url = "https://api.mainnet-beta.solana.com" 
 
 
 [test]

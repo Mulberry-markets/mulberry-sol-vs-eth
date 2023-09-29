@@ -24,6 +24,8 @@ pub fn handle_initialize(ctx: Context<Initialize>) -> Result<()> {
 
     global_state.betting_time = 60;
 
+    global_state.betting_currency = ctx.accounts.betting_currency.key();
+
 
     Ok(())
 }

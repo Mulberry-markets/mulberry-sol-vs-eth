@@ -9,7 +9,7 @@ mod sol_vs_eth_errors;
 mod utils;
 
 
-declare_id!("AHX2zXNjyVNBWMyMUcpPtcxiuWG44ZzEmPdKe4z8KnSC");
+declare_id!("64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD");
 
 #[program]
 mod sol_vs_eth {

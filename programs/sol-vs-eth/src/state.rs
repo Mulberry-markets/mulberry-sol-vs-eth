@@ -26,6 +26,9 @@ pub struct GlobalState {
 
     // time in seconds to how long the betting phase will last
     pub betting_time: u64,
+
+    pub betting_currency: Pubkey,
+
 }
 
 impl GlobalState {
