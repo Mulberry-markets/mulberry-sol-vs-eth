@@ -49,10 +49,10 @@ pub struct GlobalAuth {}
 
 #[account]
 #[derive(Default)]
-pub struct Bet {
+pub struct Game {
     // initial eth and sol prices, from pyth
-    pub init_eth_price: u64,
-    pub init_sol_price: u64,
+    pub initial_eth_price: u64,
+    pub initial_sol_price: u64,
 
     // the size of the bet on each side
     pub eth_bet_size: u64,
@@ -71,7 +71,7 @@ pub struct Bet {
     pub anticipating_end: u64,
 
     // the vault to store the collatoral for each bet.
-    pub bet_vault: Pubkey,
+    pub game_vault: Pubkey,
 
     // Amount and side that house matched
     pub house_bet_side: u8,
@@ -79,13 +79,13 @@ pub struct Bet {
     
 }
 
-impl Bet {
+impl Game {
     /// 0 meaning that sol had won,
     /// 1 meaning that eth had won
     /// 2 meaning that it's a draw
     pub fn get_winner(&self) -> u8 {
-        let sol_change = (self.final_sol_price - self.init_sol_price) as f64 / self.init_sol_price as f64;
-        let eth_change = (self.final_eth_price - self.init_eth_price) as f64 / self.init_eth_price as f64;
+        let sol_change = (self.final_sol_price - self.initial_sol_price) as f64 / self.initial_sol_price as f64;
+        let eth_change = (self.final_eth_price - self.initial_eth_price) as f64 / self.initial_eth_price as f64;
 
         if sol_change == eth_change {
             2

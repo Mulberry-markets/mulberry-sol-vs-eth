@@ -19,8 +19,8 @@ mod sol_vs_eth {
         handle_initialize(ctx)
     }
 
-    pub fn start_betting(ctx: Context<StartBetting>) -> Result<()> {
-        handle_start_betting(ctx)
+    pub fn start_game(ctx: Context<StartGame>) -> Result<()> {
+        handle_start_game(ctx)
     }
 
     pub fn place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Result<()> {
@@ -31,16 +31,16 @@ mod sol_vs_eth {
         handle_start_anticipation(ctx)
     }
 
-    pub fn resolve_bet(ctx: Context<ResolveBet>) -> Result<()> {
-        handle_resolve_bet(ctx)
+    pub fn resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
+        handle_resolve_game(ctx)
     }
 
     pub fn claim_win(ctx: Context<ClaimWin>) -> Result<()> {
         handle_claim_win(ctx)
     }
 
-    pub fn create_user_bet_account(ctx: Context<CreateBetUser>) -> Result<()> {
-        handle_create_bet_user(ctx)
+    pub fn create_user_game_account(ctx: Context<CreateUserGameAccount>) -> Result<()> {
+        handle_create_user_game_account(ctx)
     }
 
     pub fn change_global_state(ctx: Context<ChangeGlobalState>, betting_fees: u64, max_house_match: u64, betting_period: u64, anticipation_period: u64) -> Result<()> {

@@ -12,9 +12,9 @@ let globalState: PublicKey;
 let globalAuthPda: PublicKey;
 let houseWallet: PublicKey;
 let bettingToken: PublicKey;
-let bettingVault: PublicKey;
+let gameVault: PublicKey;
 let bettingGameAddress: PublicKey;
-let userBetAccount: PublicKey;
+let userGameAccount: PublicKey;
 let userTokenAccount: PublicKey;
 
 
@@ -81,12 +81,12 @@ describe("sol-vs-eth", () => {
 
     const bettingVault_ = new Keypair();
 
-    bettingVault = bettingVault_.publicKey;
-    const tx = await program.methods.startBetting().accounts({
+    gameVault = bettingVault_.publicKey;
+    const tx = await program.methods.startGame().accounts({
       signer: program.provider.publicKey,
-      bet: bettingGameAddress,
+      game: bettingGameAddress,
       bettingToken: bettingToken,
-      bettingVault: bettingVault,
+      gameVault,
       globalAuthPda,
       globalState,
       systemProgram: anchor.web3.SystemProgram.programId,
@@ -102,13 +102,13 @@ describe("sol-vs-eth", () => {
       [bettingGameAddress.toBuffer(), program.provider.publicKey.toBuffer()],
       program.programId
     );
-    userBetAccount = userBetAccount_;
-    const tx = await program.methods.createUserBetAccount().accounts({
+    userGameAccount = userBetAccount_;
+    const tx = await program.methods.createUserGameAccount().accounts({
       signer: program.provider.publicKey,
-      bet: bettingGameAddress,
+      game: bettingGameAddress,
       globalState,
       systemProgram: anchor.web3.SystemProgram.programId,
-      userBetAccount,
+      userGameAccount,
     }).rpc(OPTS);
   });
 
@@ -117,14 +117,14 @@ describe("sol-vs-eth", () => {
 
     const tx = await program.methods.placeBet(new BN(1000), 0).accounts({
       signer: program.provider.publicKey,
-      bet: bettingGameAddress,
+      game: bettingGameAddress,
       bettingToken,
       globalAuthPda,
       globalState,
-      bettingVault,
+      gameVault,
       houseWallet,
       payer: userTokenAccount,
-      userBetAccount,
+      userGameAccount,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
 
@@ -136,14 +136,14 @@ describe("sol-vs-eth", () => {
     try {
       const tx = await program.methods.placeBet(new BN(1000), 1).accounts({
         signer: program.provider.publicKey,
-        bet: bettingGameAddress,
+        game: bettingGameAddress,
         bettingToken,
         globalAuthPda,
         globalState,
-        bettingVault,
+        gameVault,
         houseWallet,
         payer: userTokenAccount,
-        userBetAccount,
+        userGameAccount,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
       }).rpc(OPTS);
@@ -159,7 +159,7 @@ describe("sol-vs-eth", () => {
     await new Promise((resolve) => setTimeout(resolve, 10000));
     const tx = await program.methods.startAnticipation().accounts({
       signer: program.provider.publicKey,
-      bet: bettingGameAddress,
+      game: bettingGameAddress,
       globalState,
       ethFeed: new PublicKey(ETH_ORACLE),
       solFeed: new PublicKey(SOL_ORACLE),
@@ -171,14 +171,14 @@ describe("sol-vs-eth", () => {
     try {
       const tx = await program.methods.placeBet(new BN(1000), 0).accounts({
         signer: program.provider.publicKey,
-        bet: bettingGameAddress,
+        game: bettingGameAddress,
         bettingToken,
         globalAuthPda,
         globalState,
-        bettingVault,
+        gameVault,
         houseWallet,
         payer: userTokenAccount,
-        userBetAccount,
+        userGameAccount,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
       }).rpc(OPTS);
@@ -192,11 +192,11 @@ describe("sol-vs-eth", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const tx = await program.methods.resolveBet().accounts({
+    const tx = await program.methods.resolveGame().accounts({
       signer: program.provider.publicKey,
-      bet: bettingGameAddress,
+      game: bettingGameAddress,
       globalState,
-      bettingVault,
+      gameVault,
       houseWallet,
       ethFeed: new PublicKey(ETH_ORACLE),
       solFeed: new PublicKey(SOL_ORACLE),
@@ -208,14 +208,14 @@ describe("sol-vs-eth", () => {
 
   it("claiming rewards", async () => {
     const tx = await program.methods.claimWin().accounts({
-      bet: bettingGameAddress,
-      bettingVault,
+      game: bettingGameAddress,
+      gameVault,
       globalAuthPda,
       globalState,
       receiver: userTokenAccount,
       signer: program.provider.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
-      userBetAccount,
+      userGameAccount,
     }).rpc(OPTS);
   });
 

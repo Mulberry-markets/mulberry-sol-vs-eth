@@ -3,30 +3,30 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
 use crate::sol_vs_eth_errors::SolVsEthErr;
-use crate::state::{Bet, GlobalAuth, GlobalState, UserBetAccount};
+use crate::state::{Game, GlobalAuth, GlobalState, UserBetAccount};
 use crate::utils::transfer_tokens;
 
 pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Result<()> {
-    let bet = &mut ctx.accounts.bet;
+    let game = &mut ctx.accounts.game;
     let global_state = &ctx.accounts.global_state;
     let payer = &ctx.accounts.payer;
-    let user_bet_account = &mut ctx.accounts.user_bet_account;
+    let use_game_account = &mut ctx.accounts.user_game_account;
 
 
-    require!(bet.betting_active(global_state.betting_time)?, SolVsEthErr::BettingInactive);
+    require!(game.betting_active(global_state.betting_time)?, SolVsEthErr::BettingInactive);
 
 
     // Users can only bet one one side.
-    if user_bet_account.side != side && user_bet_account.side != u8::MAX {
+    if use_game_account.side != side && use_game_account.side != u8::MAX {
         msg!("You already have a bet on the other side");
         return Err(SolVsEthErr::AlreadyBet.into());
     }
-    user_bet_account.side = side;
+    use_game_account.side = side;
 
     // check if there's any bet on the other side, if not, then match it upto the max_house_match.
     let match_bet = match side {
-        0 => bet.eth_bet_size == 0,
-        1 => bet.sol_bet_size == 0,
+        0 => game.eth_bet_size == 0,
+        1 => game.sol_bet_size == 0,
         _ => {
             msg!("Invalid side");
             return Err(SolVsEthErr::InvalidSide.into());
@@ -44,30 +44,28 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
         transfer_tokens(
             ctx.accounts.house_wallet.to_account_info(),
-            ctx.accounts.betting_vault.to_account_info(),
+            ctx.accounts.game_vault.to_account_info(),
             ctx.accounts.global_auth_pda.to_account_info(),
             ctx.accounts.token_program.to_account_info(),
             matched_amount,
             Some(seeds),
         )?;
-        bet.house_bet_amount = matched_amount;
+        game.house_bet_amount = matched_amount;
         if side == 0 {
-            bet.eth_bet_size = matched_amount;
+            game.eth_bet_size = matched_amount;
             // house is betting the opposite side
-            bet.house_bet_side = 1;
+            game.house_bet_side = 1;
         } else {
-            bet.sol_bet_size = matched_amount;
-            bet.house_bet_side = 0;
+            game.sol_bet_size = matched_amount;
+            game.house_bet_side = 0;
         }
     }
-
-    user_bet_account.amount += bet_size;
 
 
     // transfer the user bet to the vault
     transfer_tokens(
         ctx.accounts.payer.to_account_info(),
-        ctx.accounts.betting_vault.to_account_info(),
+        ctx.accounts.game_vault.to_account_info(),
         ctx.accounts.signer.to_account_info(),
         ctx.accounts.token_program.to_account_info(),
         bet_size,
@@ -96,20 +94,19 @@ pub struct PlaceBet<'info> {
     pub signer: Signer<'info>,
     #[account(mut)]
     pub payer: Account<'info, TokenAccount>,
-    #[account(mut)]
-    pub bet: Account<'info, Bet>,
+    pub game: Account<'info, Game>,
     pub betting_token: Account<'info, Mint>,
 
-    #[account(mut, seeds = [bet.key().as_ref(), signer.key().as_ref()], bump)]
-    pub user_bet_account: Account<'info, UserBetAccount>,
+    #[account(mut, seeds = [game.key().as_ref(), signer.key().as_ref()], bump)]
+    pub user_game_account: Account<'info, UserBetAccount>,
 
     #[account(mut,
     seeds = [GLOBAL_AUTH_SEED],
     bump)]
     pub global_auth_pda: Box<Account<'info, GlobalAuth>>,
 
-    #[account(mut, constraint = bet.bet_vault == betting_vault.key())]
-    pub betting_vault: Account<'info, TokenAccount>,
+    #[account(mut, constraint = game.game_vault == game_vault.key())]
+    pub game_vault: Account<'info, TokenAccount>,
 
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
     pub house_wallet: Account<'info, TokenAccount>,
