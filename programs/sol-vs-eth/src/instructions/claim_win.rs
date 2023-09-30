@@ -29,7 +29,7 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
         transfer_tokens(
             ctx.accounts.betting_vault.to_account_info(),
             ctx.accounts.receiver.to_account_info(),
-            ctx.accounts.signer.to_account_info(),
+            ctx.accounts.global_auth_pda.to_account_info(),
             ctx.accounts.token_program.to_account_info(),
             user_bet_size,
             Some(seeds),
@@ -56,7 +56,7 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
     transfer_tokens(
         ctx.accounts.betting_vault.to_account_info(),
         ctx.accounts.receiver.to_account_info(),
-        ctx.accounts.signer.to_account_info(),
+        ctx.accounts.global_auth_pda.to_account_info(),
         ctx.accounts.token_program.to_account_info(),
         winning_amount,
         Some(seeds),

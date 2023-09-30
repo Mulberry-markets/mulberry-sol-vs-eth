@@ -5,6 +5,7 @@ pub mod create_bet_user;
 pub mod resolve_bet;
 pub mod start_anticipation;
 pub mod claim_win;
+pub mod change_global_state;
 
 
 pub use initialize::*;
@@ -14,3 +15,4 @@ pub use create_bet_user::*;
 pub use resolve_bet::*;
 pub use start_anticipation::*;
 pub use claim_win::*;
+pub use change_global_state::*;

@@ -98,19 +98,12 @@ impl Bet {
 
     pub fn betting_active(&self, duration: u64) -> Result<bool> {
         let current_time = Clock::get()?.unix_timestamp as u64;
-        if current_time < self.betting_start + duration {
+        if current_time > self.betting_start + duration {
             return Ok(false);
         }
         Ok(true)
     }
 
-    pub fn bet_resolved(&self, duration: u64) -> Result<bool> {
-        let current_time = Clock::get()?.unix_timestamp as u64;
-        if current_time < self.anticipating_end + duration {
-            return Ok(false);
-        }
-        Ok(true)
-    }
 }
 
 

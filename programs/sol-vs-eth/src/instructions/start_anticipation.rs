@@ -13,8 +13,7 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
-
-    if Clock::get()?.unix_timestamp as u64 + global_state.betting_time < bet.betting_start {
+    if bet.betting_start + global_state.betting_time > Clock::get()?.unix_timestamp as u64 {
         return Err(SolVsEthErr::BettingTimeTooSoon.into());
     }
 
@@ -28,7 +27,8 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
 
     let sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
     let eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
-
+    msg!("Sol price: {}", sol_price);
+    msg!("Eth price: {}", eth_price);
     bet.init_sol_price = sol_price;
     bet.init_eth_price = eth_price;
 
@@ -37,11 +37,11 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     Ok(())
 }
 
-
 #[derive(Accounts)]
 pub struct StartAnticipation<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
+    #[account(mut)]
     pub bet: Account<'info, Bet>,
     #[account(mut, seeds = [GLOBAL_STATE_SEED], bump)]
     pub global_state: Account<'info, GlobalState>,

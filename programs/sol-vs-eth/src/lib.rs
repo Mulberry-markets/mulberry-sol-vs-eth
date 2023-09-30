@@ -42,5 +42,9 @@ mod sol_vs_eth {
     pub fn create_user_bet_account(ctx: Context<CreateBetUser>) -> Result<()> {
         handle_create_bet_user(ctx)
     }
+
+    pub fn change_global_state(ctx: Context<ChangeGlobalState>, betting_fees: u64, max_house_match: u64, betting_period: u64, anticipation_period: u64) -> Result<()> {
+        handle_change_global_state(ctx, betting_fees, max_house_match, betting_period, anticipation_period)
+    }
 }
 

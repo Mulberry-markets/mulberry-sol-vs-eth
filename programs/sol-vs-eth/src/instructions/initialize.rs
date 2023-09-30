@@ -14,7 +14,7 @@ pub fn handle_initialize(ctx: Context<Initialize>) -> Result<()> {
     // initial fee of 500(5%)
     global_state.betting_fees = 500;
     // max bet amount of 0.5 sol
-    global_state.max_house_match = (0.5 * 1e9_f64) as u64;
+    global_state.max_house_match = (0.5 * 1e6_f64) as u64;
 
     global_state.paused = false;
 

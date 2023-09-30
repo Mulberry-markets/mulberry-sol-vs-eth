@@ -17,7 +17,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
 
 
     // Users can only bet one one side.
-    if user_bet_account.side != side && side != u8::MAX {
+    if user_bet_account.side != side && user_bet_account.side != u8::MAX {
         msg!("You already have a bet on the other side");
         return Err(SolVsEthErr::AlreadyBet.into());
     }
@@ -45,7 +45,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         transfer_tokens(
             ctx.accounts.house_wallet.to_account_info(),
             ctx.accounts.betting_vault.to_account_info(),
-            ctx.accounts.signer.to_account_info(),
+            ctx.accounts.global_auth_pda.to_account_info(),
             ctx.accounts.token_program.to_account_info(),
             matched_amount,
             Some(seeds),
@@ -60,6 +60,8 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
             bet.house_bet_side = 0;
         }
     }
+
+    user_bet_account.amount += bet_size;
 
 
     // transfer the user bet to the vault
@@ -94,6 +96,7 @@ pub struct PlaceBet<'info> {
     pub signer: Signer<'info>,
     #[account(mut)]
     pub payer: Account<'info, TokenAccount>,
+    #[account(mut)]
     pub bet: Account<'info, Bet>,
     pub betting_token: Account<'info, Mint>,
 

@@ -6,4 +6,4 @@ pub const ETH_ORACLE: &str = "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB";
 pub const SOL_ORACLE: &str = "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG";
 
 
-pub const ADMIN_WALLETS: &[&str; 1] = &["5GrCgeZRNtGgKe7ezhSo5vU6ug68JsrC1FCo9246DBgg"];
+pub const ADMIN_WALLETS : &str= &"5GrCgeZRNtGgKe7ezhSo5vU6ug68JsrC1FCo9246DBgg";

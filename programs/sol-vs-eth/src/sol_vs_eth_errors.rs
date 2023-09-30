@@ -14,7 +14,7 @@ pub enum SolVsEthErr {
     AlreadyBet,
     #[msg("Anticipation period ending too soon")]
     AnticipationTimeTooSoon,
-    #[msg("beting period ending too soon")]
+    #[msg("betting period ending too soon")]
     BettingTimeTooSoon,
     #[msg("Bet already settled")]
     BetAlreadySettled,
@@ -25,5 +25,7 @@ pub enum SolVsEthErr {
     #[msg("Bet already claimed")]
     AlreadyClaimed,
     #[msg("Bet not claimed")]
-    BettingInactive
+    BettingInactive,
+    #[msg("Unauthorized")]
+    Unauthorized
 }
