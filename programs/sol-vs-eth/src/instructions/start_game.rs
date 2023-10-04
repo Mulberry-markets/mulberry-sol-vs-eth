@@ -17,7 +17,7 @@ pub fn handle_start_game(ctx: Context<StartGame>) -> Result<()> {
     game.game_vault = ctx.accounts.game_vault.key();
 
     ctx.accounts.global_state.add_game_record(ctx.accounts.game.key());
-    
+
     Ok(())
 }
 
@@ -28,7 +28,7 @@ pub struct StartGame<'info> {
     pub signer: Signer<'info>,
 
     #[account(init, payer = signer, space = size_of::< Game > () + 12)]
-    pub game: Account<'info, Game>,
+    pub game: Box<Account<'info, Game>>,
 
     #[account(mut, seeds = [GLOBAL_AUTH_SEED], bump)]
     pub global_auth_pda: Box<Account<'info, GlobalAuth>>,

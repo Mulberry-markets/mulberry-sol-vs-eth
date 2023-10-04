@@ -72,9 +72,8 @@ pub struct GameRecord {
 pub enum GameStatus {
     #[default]
     Betting,
-    Anticipating,
-    Resolved
-
+    Anticipation,
+    Resolved,
 }
 
 #[account]
@@ -110,6 +109,15 @@ pub struct Game {
     // Amount and side that house matched
     pub house_bet_side: u8,
     pub house_bet_amount: u64,
+
+    // a max of 25 users can bet on each side.
+    pub user_bets: [UserBet; 25],
+
+    // keeps track of how many user_bets slots are taken
+    pub slots_taken: u8,
+
+    // when airdropping the rewards to the users, keeps track of how many slots are emptied, when slots_emptied == slots_taken, it means that all the rewards have been airdropped.
+    pub slots_emptied: u8,
 }
 
 impl Game {
@@ -138,17 +146,45 @@ impl Game {
         }
         Ok(true)
     }
+
+    pub fn add_user_bet(&mut self, user_address: Pubkey, amount: u64, side: u8) -> Result<()> {
+        // look if they have a bet on there already
+        for user_bet_slot in self.user_bets.iter_mut() {
+            if user_bet_slot.user_key == user_address {
+                if user_bet_slot.side != side {
+                    return Err(SolVsEthErr::AlreadyBet.into());
+                }
+                user_bet_slot.amount += amount;
+            }
+        }
+        // User got no bets, look for empty slot
+        for user_bet_slot in self.user_bets.iter_mut() {
+            if user_bet_slot.user_key == Pubkey::default() {
+                self.slots_taken += 1;
+                user_bet_slot.user_key = user_address;
+                user_bet_slot.amount = amount;
+                user_bet_slot.claimed = false;
+                user_bet_slot.side = side;
+                return Ok(());
+            }
+        }
+        Err(SolVsEthErr::NoSpaceLeft.into())
+    }
+
+    pub fn get_user_bet(&self, user_address: Pubkey) -> Result<UserBet> {
+        for user_bet_slot in self.user_bets.iter() {
+            if user_bet_slot.user_key == user_address {
+                return Ok(user_bet_slot.clone());
+            }
+        }
+        Err(SolVsEthErr::NoBetFound.into())
+    }
 }
 
-// #[account]
-// pub struct User {
-//     pub owner : Pubkey,
-//     pub credit : u64,
-// }
-
-#[account]
-pub struct UserBetAccount {
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+pub struct UserBet {
+    pub user_key: Pubkey,
     pub amount: u64,
-    pub side: u8,
     pub claimed: bool,
+    pub side: u8,
 }

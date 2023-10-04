@@ -3,24 +3,24 @@ use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
 use crate::sol_vs_eth_errors::SolVsEthErr;
-use crate::state::{Game, GlobalAuth, GlobalState, UserBetAccount};
+use crate::state::{Game, GlobalAuth, GlobalState};
 use crate::utils::transfer_tokens;
 
 pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
     let game = &mut ctx.accounts.game;
-    let user_game_account = &mut ctx.accounts.user_game_account;
 
 
     require!(game.is_settled, SolVsEthErr::BetNotSettled);
-    require!(!user_game_account.claimed, SolVsEthErr::AlreadyClaimed);
+    let mut user_bet = game.get_user_bet(ctx.accounts.signer.key())?;
+    require!(!user_bet.claimed, SolVsEthErr::AlreadyClaimed);
 
 
-    if game.get_winner() != 2 && user_game_account.side != game.get_winner() {
+    if game.get_winner() != 2 && user_bet.side != game.get_winner() {
         msg!("You are not on the winning side");
         return Err(SolVsEthErr::NotOnWinningSide.into());
     }
 
-    let user_bet_size = user_game_account.amount;
+    let user_bet_size = user_bet.amount;
     if game.get_winner() == 2 {
         msg!("Draw, returning your bet");
         // Market resolved with a draw, return the user's bet
@@ -34,13 +34,13 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
             user_bet_size,
             Some(seeds),
         )?;
-        user_game_account.claimed = true;
+        user_bet.claimed = true;
         return Ok(());
     }
     let total_sol_bets = game.sol_bet_size;
     let total_eth_bets = game.eth_bet_size;
     let mut winning_amount = 0;
-    if user_game_account.side == 0 {
+    if user_bet.side == 0 {
         // this means the user bet on sol, and sol won
         let user_pool_share = user_bet_size as f64 / total_sol_bets as f64;
         winning_amount = (total_eth_bets as f64 * user_pool_share) as u64;
@@ -62,7 +62,7 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
         Some(seeds),
     )?;
 
-    user_game_account.claimed = true;
+    user_bet.claimed = true;
 
 
     Ok(())
@@ -73,9 +73,7 @@ pub struct ClaimWin<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut)]
-    pub game: Account<'info, Game>,
-    #[account(mut, seeds = [game.key().as_ref(), signer.key().as_ref()], bump)]
-    pub user_game_account: Account<'info, UserBetAccount>,
+    pub game: Box<Account<'info, Game>>,
     #[account(mut,
     seeds = [GLOBAL_AUTH_SEED],
     bump)]

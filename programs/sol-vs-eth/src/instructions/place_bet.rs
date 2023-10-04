@@ -3,25 +3,17 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
 use crate::sol_vs_eth_errors::SolVsEthErr;
-use crate::state::{Game, GlobalAuth, GlobalState, UserBetAccount};
+use crate::state::{Game, GlobalAuth, GlobalState};
 use crate::utils::transfer_tokens;
 
 pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Result<()> {
     let game = &mut ctx.accounts.game;
     let global_state = &ctx.accounts.global_state;
     let payer = &ctx.accounts.payer;
-    let use_game_account = &mut ctx.accounts.user_game_account;
 
 
     require!(game.betting_active(global_state.betting_time)?, SolVsEthErr::BettingInactive);
 
-
-    // Users can only bet one one side.
-    if use_game_account.side != side && use_game_account.side != u8::MAX {
-        msg!("You already have a bet on the other side");
-        return Err(SolVsEthErr::AlreadyBet.into());
-    }
-    use_game_account.side = side;
 
     // check if there's any bet on the other side, if not, then match it upto the max_house_match.
     let match_bet = match side {
@@ -89,7 +81,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     } else {
         game.eth_bet_size += bet_size;
     }
-
+    game.add_user_bet(ctx.accounts.signer.key(), bet_size, side)?;
     Ok(())
 }
 
@@ -101,11 +93,8 @@ pub struct PlaceBet<'info> {
     #[account(mut)]
     pub payer: Account<'info, TokenAccount>,
     #[account(mut)]
-    pub game: Account<'info, Game>,
+    pub game: Box<Account<'info, Game>>,
     pub betting_token: Account<'info, Mint>,
-
-    #[account(mut, seeds = [game.key().as_ref(), signer.key().as_ref()], bump)]
-    pub user_game_account: Account<'info, UserBetAccount>,
 
     #[account(mut,
     seeds = [GLOBAL_AUTH_SEED],

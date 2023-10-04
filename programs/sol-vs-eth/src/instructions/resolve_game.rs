@@ -66,7 +66,7 @@ pub struct ResolveBet<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut)]
-    pub game: Account<'info, Game>,
+    pub game: Box<Account<'info, Game>>,
     #[account(mut, seeds = [GLOBAL_STATE_SEED], bump)]
     pub global_state: Account<'info, GlobalState>,
     /// CHECK: Checking this manually in the instruction

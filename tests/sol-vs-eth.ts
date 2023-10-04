@@ -14,7 +14,6 @@ let houseWallet: PublicKey;
 let bettingToken: PublicKey;
 let gameVault: PublicKey;
 let bettingGameAddress: PublicKey;
-let userGameAccount: PublicKey;
 let userTokenAccount: PublicKey;
 
 
@@ -97,20 +96,6 @@ describe("sol-vs-eth", () => {
 
   });
 
-  it("Create User Bet Account", async () => {
-    const [userBetAccount_, bump] = await anchor.web3.PublicKey.findProgramAddress(
-      [bettingGameAddress.toBuffer(), program.provider.publicKey.toBuffer()],
-      program.programId
-    );
-    userGameAccount = userBetAccount_;
-    const tx = await program.methods.createUserGameAccount().accounts({
-      signer: program.provider.publicKey,
-      game: bettingGameAddress,
-      globalState,
-      systemProgram: anchor.web3.SystemProgram.programId,
-      userGameAccount,
-    }).rpc(OPTS);
-  });
 
   it("betting on a game", async () => {
 
@@ -124,7 +109,6 @@ describe("sol-vs-eth", () => {
       gameVault,
       houseWallet,
       payer: userTokenAccount,
-      userGameAccount,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
 
@@ -143,7 +127,6 @@ describe("sol-vs-eth", () => {
         gameVault,
         houseWallet,
         payer: userTokenAccount,
-        userGameAccount,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
       }).rpc(OPTS);
@@ -178,7 +161,6 @@ describe("sol-vs-eth", () => {
         gameVault,
         houseWallet,
         payer: userTokenAccount,
-        userGameAccount,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
       }).rpc(OPTS);
@@ -215,7 +197,6 @@ describe("sol-vs-eth", () => {
       receiver: userTokenAccount,
       signer: program.provider.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
-      userGameAccount,
     }).rpc(OPTS);
   });
 

@@ -27,5 +27,9 @@ pub enum SolVsEthErr {
     #[msg("Bet not claimed")]
     BettingInactive,
     #[msg("Unauthorized")]
-    Unauthorized
+    Unauthorized,
+    #[msg("No space left")]
+    NoSpaceLeft,
+    #[msg("No bet found")]
+    NoBetFound
 }
