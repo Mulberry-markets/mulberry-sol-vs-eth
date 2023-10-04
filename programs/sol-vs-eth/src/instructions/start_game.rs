@@ -16,7 +16,8 @@ pub fn handle_start_game(ctx: Context<StartGame>) -> Result<()> {
     game.sol_bet_size = 0;
     game.game_vault = ctx.accounts.game_vault.key();
 
-
+    ctx.accounts.global_state.add_game_record(ctx.accounts.game.key());
+    
     Ok(())
 }
 

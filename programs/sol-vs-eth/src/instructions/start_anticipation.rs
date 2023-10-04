@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 
 use crate::consts::{ETH_ORACLE, GLOBAL_STATE_SEED, SOL_ORACLE};
 use crate::sol_vs_eth_errors::SolVsEthErr;
-use crate::state::{Game, GlobalState};
+use crate::state::{Game, GameStatus, GlobalState};
 use crate::utils::get_price_from_pyth;
 
 pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> {
@@ -33,6 +33,8 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     game.initial_eth_price = eth_price;
 
     game.anticipating_start = Clock::get()?.unix_timestamp as u64;
+
+    ctx.accounts.global_state.modify_game_record(game.key(), GameStatus::Anticipation);
 
     Ok(())
 }

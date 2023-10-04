@@ -38,7 +38,8 @@ pub struct Initialize<'info> {
     #[account(init,
     seeds = [GLOBAL_STATE_SEED], bump,
     payer = signer,
-    space = size_of::< GlobalState > () + 12)]
+    // leaving some extra space for future upgrades
+    space = 350)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(init,

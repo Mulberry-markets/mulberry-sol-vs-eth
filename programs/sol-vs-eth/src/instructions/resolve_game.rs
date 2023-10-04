@@ -3,9 +3,9 @@ use std::str::FromStr;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
-use crate::consts::{ETH_ORACLE, SOL_ORACLE, GLOBAL_STATE_SEED, GLOBAL_AUTH_SEED};
+use crate::consts::{ETH_ORACLE, GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED, SOL_ORACLE};
 use crate::sol_vs_eth_errors::SolVsEthErr;
-use crate::state::{Game, GlobalAuth, GlobalState};
+use crate::state::{Game, GameStatus, GlobalAuth, GlobalState};
 use crate::utils::{get_price_from_pyth, transfer_tokens};
 
 pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
@@ -19,7 +19,7 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     msg!("anticipation start : {}", game.anticipating_start);
 
-    if Clock::get()?.unix_timestamp as u64 <= game.anticipating_start + global_state.anticipation_time {
+    if  game.anticipating_start + global_state.anticipation_time > Clock::get()?.unix_timestamp as u64 {
         return Err(SolVsEthErr::AnticipationTimeTooSoon.into());
     }
 
@@ -40,6 +40,7 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     game.is_settled = true;
     game.anticipating_end = Clock::get()?.unix_timestamp as u64;
 
+    ctx.accounts.global_state.modify_game_record(game.key(), GameStatus::Resolved);
 
     if game.get_winner() == game.house_bet_side || game.get_winner() == 2 {
         msg!("House did win");
@@ -54,7 +55,6 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
             game.house_bet_amount,
             Some(seeds),
         )?;
-        
     }
 
     Ok(())

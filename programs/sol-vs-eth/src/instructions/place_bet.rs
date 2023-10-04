@@ -83,6 +83,12 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         None,
     )?;
 
+    // update the game state
+    if side == 0 {
+        game.sol_bet_size += bet_size;
+    } else {
+        game.eth_bet_size += bet_size;
+    }
 
     Ok(())
 }
@@ -94,6 +100,7 @@ pub struct PlaceBet<'info> {
     pub signer: Signer<'info>,
     #[account(mut)]
     pub payer: Account<'info, TokenAccount>,
+    #[account(mut)]
     pub game: Account<'info, Game>,
     pub betting_token: Account<'info, Mint>,
 

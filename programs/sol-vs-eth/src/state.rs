@@ -29,6 +29,8 @@ pub struct GlobalState {
 
     pub betting_currency: Pubkey,
 
+    // storing the latest 5 games, including the current active game.
+    pub game_records: [GameRecord; 5],
 }
 
 impl GlobalState {
@@ -39,13 +41,45 @@ impl GlobalState {
         msg!("Admin confirmed");
         Ok(())
     }
+
+    pub fn add_game_record(&mut self, game_address: Pubkey) {
+        let mut game_records = self.game_records.clone();
+        game_records.rotate_right(1);
+        game_records[0] = GameRecord {
+            game_address,
+            status: GameStatus::Betting,
+        };
+        self.game_records = game_records;
+    }
+
+    pub fn modify_game_record(&mut self, game_address: Pubkey, status: GameStatus) {
+        for game_record in self.game_records.iter_mut() {
+            if game_record.game_address == game_address {
+                game_record.status = status;
+                return;
+            }
+        }
+    }
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+pub struct GameRecord {
+    game_address: Pubkey,
+    status: GameStatus,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+pub enum GameStatus {
+    #[default]
+    Betting,
+    Anticipating,
+    Resolved
+
+}
 
 #[account]
 #[derive(Default)]
 pub struct GlobalAuth {}
-
 
 #[account]
 #[derive(Default)]
@@ -76,7 +110,6 @@ pub struct Game {
     // Amount and side that house matched
     pub house_bet_side: u8,
     pub house_bet_amount: u64,
-    
 }
 
 impl Game {
@@ -84,8 +117,10 @@ impl Game {
     /// 1 meaning that eth had won
     /// 2 meaning that it's a draw
     pub fn get_winner(&self) -> u8 {
-        let sol_change = (self.final_sol_price - self.initial_sol_price) as f64 / self.initial_sol_price as f64;
-        let eth_change = (self.final_eth_price - self.initial_eth_price) as f64 / self.initial_eth_price as f64;
+        let sol_change = (self.final_sol_price as i64 - self.initial_sol_price as i64) as f64
+            / self.initial_sol_price as f64;
+        let eth_change = (self.final_sol_price as i64 - self.initial_sol_price as i64) as f64
+            / self.initial_eth_price as f64;
 
         if sol_change == eth_change {
             2
@@ -103,9 +138,7 @@ impl Game {
         }
         Ok(true)
     }
-
 }
-
 
 // #[account]
 // pub struct User {
