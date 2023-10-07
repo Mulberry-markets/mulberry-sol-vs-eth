@@ -31,6 +31,8 @@ pub struct GlobalState {
 
     // storing the latest 5 games, including the current active game.
     pub game_records: [GameRecord; 5],
+
+    pub to_close : Pubkey,
 }
 
 impl GlobalState {
@@ -45,6 +47,7 @@ impl GlobalState {
     pub fn add_game_record(&mut self, game_address: Pubkey) {
         let mut game_records = self.game_records.clone();
         game_records.rotate_right(1);
+        self.to_close = game_records[0].game_address;
         game_records[0] = GameRecord {
             game_address,
             status: GameStatus::Betting,
@@ -64,8 +67,8 @@ impl GlobalState {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
 pub struct GameRecord {
-    game_address: Pubkey,
-    status: GameStatus,
+    pub game_address: Pubkey,
+    pub status: GameStatus,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
@@ -113,11 +116,6 @@ pub struct Game {
     // a max of 25 users can bet on each side.
     pub user_bets: [UserBet; 25],
 
-    // keeps track of how many user_bets slots are taken
-    pub slots_taken: u8,
-
-    // when airdropping the rewards to the users, keeps track of how many slots are emptied, when slots_emptied == slots_taken, it means that all the rewards have been airdropped.
-    pub slots_emptied: u8,
 }
 
 impl Game {
@@ -160,7 +158,6 @@ impl Game {
         // User got no bets, look for empty slot
         for user_bet_slot in self.user_bets.iter_mut() {
             if user_bet_slot.user_key == Pubkey::default() {
-                self.slots_taken += 1;
                 user_bet_slot.user_key = user_address;
                 user_bet_slot.amount = amount;
                 user_bet_slot.claimed = false;
@@ -171,13 +168,24 @@ impl Game {
         Err(SolVsEthErr::NoSpaceLeft.into())
     }
 
-    pub fn get_user_bet(&self, user_address: Pubkey) -> Result<UserBet> {
+    pub fn get_user_bet(&self, user_address: Pubkey) -> Option<UserBet> {
         for user_bet_slot in self.user_bets.iter() {
             if user_bet_slot.user_key == user_address {
-                return Ok(user_bet_slot.clone());
+                return Some(user_bet_slot.clone());
             }
         }
-        Err(SolVsEthErr::NoBetFound.into())
+        None
+    }
+
+    pub fn check_all_bets_claimed(&self) -> bool {
+        let winnning_side = self.get_winner();
+
+        for user_bet_slot in self.user_bets.iter() {
+            if !user_bet_slot.claimed && user_bet_slot.user_key != Pubkey::default() && user_bet_slot.side == winnning_side {
+                return false;
+            }
+        }
+        true
     }
 }
 

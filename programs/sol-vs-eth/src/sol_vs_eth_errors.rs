@@ -31,5 +31,11 @@ pub enum SolVsEthErr {
     #[msg("No space left")]
     NoSpaceLeft,
     #[msg("No bet found")]
-    NoBetFound
+    NoBetFound,
+    #[msg("Not all bets are claimed")]
+    BetsNotClaimed,
+    #[msg("Vault not empty")]
+    VaultNotEmpty,
+    #[msg("too early to close the game")]
+    GameNotClosed
 }

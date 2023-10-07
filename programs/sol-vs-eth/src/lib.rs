@@ -2,6 +2,8 @@ use anchor_lang::prelude::*;
 
 use instructions::*;
 
+use crate::state::{ GlobalState};
+
 mod state;
 mod instructions;
 mod consts;
@@ -46,5 +48,25 @@ mod sol_vs_eth {
     pub fn change_global_state(ctx: Context<ChangeGlobalState>, betting_fees: u64, max_house_match: u64, betting_period: u64, anticipation_period: u64) -> Result<()> {
         handle_change_global_state(ctx, betting_fees, max_house_match, betting_period, anticipation_period)
     }
+
+    pub fn close_game(ctx: Context<CloseGame>) -> Result<()> {
+        handle_close_game(ctx)
+    }
+
+    pub fn clean_game_records(ctx: Context<CleanGameRecords>) -> Result<()> {
+        ctx.accounts.global_state.confirm_crank_admin(&ctx.accounts.signer)?;
+        for _ in 0..5 {
+            ctx.accounts.global_state.add_game_record(Pubkey::default());
+        }
+
+        ctx.accounts.global_state.to_close = Pubkey::default();
+        Ok(())
+    }
 }
 
+#[derive(Accounts)]
+pub struct CleanGameRecords<'info> {
+    signer: Signer<'info>,
+    #[account(mut)]
+    global_state: Account<'info, GlobalState>,
+}

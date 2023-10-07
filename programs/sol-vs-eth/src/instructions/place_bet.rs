@@ -81,7 +81,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     } else {
         game.eth_bet_size += bet_size;
     }
-    game.add_user_bet(ctx.accounts.signer.key(), bet_size, side)?;
+    game.add_user_bet(payer.key(), bet_size, side)?;
     Ok(())
 }
 

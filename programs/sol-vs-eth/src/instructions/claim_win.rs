@@ -11,7 +11,11 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
 
 
     require!(game.is_settled, SolVsEthErr::BetNotSettled);
-    let mut user_bet = game.get_user_bet(ctx.accounts.signer.key())?;
+    let mut user_bet = if let Some(user_bet) = game.get_user_bet(ctx.accounts.receiver.key()) {
+        user_bet
+    } else {
+        return err!(SolVsEthErr::NoBetFound);
+    };
     require!(!user_bet.claimed, SolVsEthErr::AlreadyClaimed);
 
 
@@ -21,6 +25,8 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
     }
 
     let user_bet_size = user_bet.amount;
+    user_bet.claimed = true;
+
     if game.get_winner() == 2 {
         msg!("Draw, returning your bet");
         // Market resolved with a draw, return the user's bet
@@ -34,20 +40,20 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
             user_bet_size,
             Some(seeds),
         )?;
-        user_bet.claimed = true;
         return Ok(());
     }
+    let total_pool_size = game.sol_bet_size + game.eth_bet_size;
     let total_sol_bets = game.sol_bet_size;
     let total_eth_bets = game.eth_bet_size;
     let mut winning_amount = 0;
     if user_bet.side == 0 {
         // this means the user bet on sol, and sol won
         let user_pool_share = user_bet_size as f64 / total_sol_bets as f64;
-        winning_amount = (total_eth_bets as f64 * user_pool_share) as u64;
+        winning_amount = (total_pool_size as f64 * user_pool_share) as u64;
     } else {
         // this means the user bet on eth, and eth won
         let user_pool_share = user_bet_size as f64 / total_eth_bets as f64;
-        winning_amount = (total_sol_bets as f64 * user_pool_share) as u64;
+        winning_amount = (total_pool_size as f64 * user_pool_share) as u64;
     }
 
     // transfer the winning amount to the user
@@ -62,16 +68,11 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
         Some(seeds),
     )?;
 
-    user_bet.claimed = true;
-
-
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct ClaimWin<'info> {
-    #[account(mut)]
-    pub signer: Signer<'info>,
     #[account(mut)]
     pub game: Box<Account<'info, Game>>,
     #[account(mut,
