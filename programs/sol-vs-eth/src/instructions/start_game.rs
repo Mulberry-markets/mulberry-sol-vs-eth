@@ -34,13 +34,13 @@ pub struct StartGame<'info> {
     pub global_auth_pda: Box<Account<'info, GlobalAuth>>,
 
     #[account(mut, seeds = [GLOBAL_STATE_SEED], bump)]
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(constraint = global_state.betting_currency == betting_token.key())]
-    pub betting_token: Account<'info, Mint>,
+    pub betting_token: Box<Account<'info, Mint>>,
 
     #[account(init, payer = signer, token::mint = betting_token, token::authority = global_auth_pda)]
-    pub game_vault: Account<'info, TokenAccount>,
+    pub game_vault: Box<Account<'info, TokenAccount>>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

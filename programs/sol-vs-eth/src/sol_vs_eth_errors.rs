@@ -37,5 +37,7 @@ pub enum SolVsEthErr {
     #[msg("Vault not empty")]
     VaultNotEmpty,
     #[msg("too early to close the game")]
-    GameNotClosed
+    GameNotClosed,
+    #[msg("Game vault mismatch")]
+    GameVaultMismatch
 }

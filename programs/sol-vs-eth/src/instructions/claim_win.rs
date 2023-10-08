@@ -25,7 +25,8 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
     }
 
     let user_bet_size = user_bet.amount;
-    user_bet.claimed = true;
+
+    game.mark_bet_claimed(ctx.accounts.receiver.key())?;
 
     if game.get_winner() == 2 {
         msg!("Draw, returning your bet");

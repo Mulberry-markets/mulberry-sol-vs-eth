@@ -32,7 +32,7 @@ pub struct GlobalState {
     // storing the latest 5 games, including the current active game.
     pub game_records: [GameRecord; 5],
 
-    pub to_close : Pubkey,
+    pub to_close: Pubkey,
 }
 
 impl GlobalState {
@@ -114,7 +114,7 @@ pub struct Game {
     pub house_bet_amount: u64,
 
     // a max of 25 users can bet on each side.
-    pub user_bets: [UserBet; 25],
+    pub user_bets: [UserBet; 20],
 
 }
 
@@ -125,7 +125,7 @@ impl Game {
     pub fn get_winner(&self) -> u8 {
         let sol_change = (self.final_sol_price as i64 - self.initial_sol_price as i64) as f64
             / self.initial_sol_price as f64;
-        let eth_change = (self.final_sol_price as i64 - self.initial_sol_price as i64) as f64
+        let eth_change = (self.final_eth_price as i64 - self.initial_eth_price as i64) as f64
             / self.initial_eth_price as f64;
 
         if sol_change == eth_change {
@@ -145,7 +145,7 @@ impl Game {
         Ok(true)
     }
 
-    pub fn add_user_bet(&mut self, user_address: Pubkey, amount: u64, side: u8) -> Result<()> {
+    pub fn add_user_bet(&mut self, user_address: Pubkey, owner: Pubkey, amount: u64, side: u8) -> Result<()> {
         // look if they have a bet on there already
         for user_bet_slot in self.user_bets.iter_mut() {
             if user_bet_slot.user_key == user_address {
@@ -162,6 +162,7 @@ impl Game {
                 user_bet_slot.amount = amount;
                 user_bet_slot.claimed = false;
                 user_bet_slot.side = side;
+                user_bet_slot.owner = owner;
                 return Ok(());
             }
         }
@@ -175,6 +176,16 @@ impl Game {
             }
         }
         None
+    }
+
+    pub fn mark_bet_claimed(&mut self, user_address: Pubkey) -> Result<()> {
+        for user_bet_slot in self.user_bets.iter_mut() {
+            if user_bet_slot.user_key == user_address {
+                user_bet_slot.claimed = true;
+                return Ok(());
+            }
+        }
+        Err(SolVsEthErr::NoBetFound.into())
     }
 
     pub fn check_all_bets_claimed(&self) -> bool {
@@ -195,4 +206,5 @@ pub struct UserBet {
     pub amount: u64,
     pub claimed: bool,
     pub side: u8,
+    pub owner: Pubkey,
 }

@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
 use crate::sol_vs_eth_errors::SolVsEthErr;
@@ -81,7 +81,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     } else {
         game.eth_bet_size += bet_size;
     }
-    game.add_user_bet(payer.key(), bet_size, side)?;
+    game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
     Ok(())
 }
 
@@ -91,23 +91,23 @@ pub struct PlaceBet<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut)]
-    pub payer: Account<'info, TokenAccount>,
+    pub payer: Box<Account<'info, TokenAccount>>,
+
     #[account(mut)]
     pub game: Box<Account<'info, Game>>,
-    pub betting_token: Account<'info, Mint>,
 
     #[account(mut,
     seeds = [GLOBAL_AUTH_SEED],
     bump)]
     pub global_auth_pda: Box<Account<'info, GlobalAuth>>,
 
-    #[account(mut, constraint = game.game_vault == game_vault.key())]
-    pub game_vault: Account<'info, TokenAccount>,
+    #[account(mut)]
+    pub game_vault: Box<Account<'info, TokenAccount>>,
 
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
-    pub house_wallet: Account<'info, TokenAccount>,
+    pub house_wallet: Box<Account<'info, TokenAccount>>,
 
-    pub global_state: Account<'info, GlobalState>,
+    pub global_state: Box<Account<'info, GlobalState>>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }
