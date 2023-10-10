@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
-use crate::sol_vs_eth_errors::SolVsEthErr;
+use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState};
 use crate::utils::transfer_tokens;
 
@@ -10,18 +10,18 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
     let game = &mut ctx.accounts.game;
 
 
-    require!(game.is_settled, SolVsEthErr::BetNotSettled);
+    require!(game.is_settled, QuickBetsErrors::BetNotSettled);
     let mut user_bet = if let Some(user_bet) = game.get_user_bet(ctx.accounts.receiver.key()) {
         user_bet
     } else {
-        return err!(SolVsEthErr::NoBetFound);
+        return err!(QuickBetsErrors::NoBetFound);
     };
-    require!(!user_bet.claimed, SolVsEthErr::AlreadyClaimed);
+    require!(!user_bet.claimed, QuickBetsErrors::AlreadyClaimed);
 
 
     if game.get_winner() != 2 && user_bet.side != game.get_winner() {
         msg!("You are not on the winning side");
-        return Err(SolVsEthErr::NotOnWinningSide.into());
+        return Err(QuickBetsErrors::NotOnWinningSide.into());
     }
 
     let user_bet_size = user_bet.amount;

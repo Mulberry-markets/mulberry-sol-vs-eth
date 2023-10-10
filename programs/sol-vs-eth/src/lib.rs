@@ -7,14 +7,14 @@ use crate::state::{ GlobalState};
 mod state;
 mod instructions;
 mod consts;
-mod sol_vs_eth_errors;
+mod quick_bets_errors;
 mod utils;
 
 
 declare_id!("64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD");
 
 #[program]
-mod sol_vs_eth {
+mod mulberry_quick_bets {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {

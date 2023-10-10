@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::{ETH_ORACLE, GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED, SOL_ORACLE};
-use crate::sol_vs_eth_errors::SolVsEthErr;
+use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GameStatus, GlobalAuth, GlobalState};
 use crate::utils::{get_price_from_pyth, transfer_tokens};
 
@@ -14,18 +14,18 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
-    require!(!game.is_settled , SolVsEthErr::BetAlreadySettled);
+    require!(!game.is_settled , QuickBetsErrors::BetAlreadySettled);
 
     if game.anticipating_start + global_state.anticipation_time > Clock::get()?.unix_timestamp as u64 {
-        return Err(SolVsEthErr::AnticipationTimeTooSoon.into());
+        return Err(QuickBetsErrors::AnticipationTimeTooSoon.into());
     }
 
     if Pubkey::from_str(SOL_ORACLE).unwrap() != *ctx.accounts.sol_feed.key {
-        return Err(SolVsEthErr::InvalidOracle.into());
+        return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
     if Pubkey::from_str(ETH_ORACLE).unwrap() != *ctx.accounts.eth_feed.key {
-        return Err(SolVsEthErr::InvalidOracle.into());
+        return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
 

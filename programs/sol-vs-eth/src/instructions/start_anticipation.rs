@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anchor_lang::prelude::*;
 
 use crate::consts::{ETH_ORACLE, GLOBAL_STATE_SEED, SOL_ORACLE};
-use crate::sol_vs_eth_errors::SolVsEthErr;
+use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GameStatus, GlobalState};
 use crate::utils::get_price_from_pyth;
 
@@ -15,15 +15,15 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     msg!("betting start : {}", game.betting_start + global_state.betting_time);
     msg!("current time : {}", Clock::get()?.unix_timestamp as u64);
     if game.betting_start + global_state.betting_time > Clock::get()?.unix_timestamp as u64 {
-        return Err(SolVsEthErr::BettingTimeTooSoon.into());
+        return Err(QuickBetsErrors::BettingTimeTooSoon.into());
     }
 
     if Pubkey::from_str(SOL_ORACLE).unwrap() != *ctx.accounts.sol_feed.key {
-        return Err(SolVsEthErr::InvalidOracle.into());
+        return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
     if Pubkey::from_str(ETH_ORACLE).unwrap() != *ctx.accounts.eth_feed.key {
-        return Err(SolVsEthErr::InvalidOracle.into());
+        return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
     let sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;

@@ -1,4 +1,4 @@
-use crate::sol_vs_eth_errors::SolVsEthErr;
+use crate::quick_bets_errors::QuickBetsErrors;
 
 use super::*;
 
@@ -38,7 +38,7 @@ pub struct GlobalState {
 impl GlobalState {
     pub fn confirm_crank_admin(&self, signer_address: &Signer) -> Result<()> {
         if self.crank_admin != signer_address.key() {
-            return Err(SolVsEthErr::InvalidAdmin.into());
+            return Err(QuickBetsErrors::InvalidAdmin.into());
         }
         msg!("Admin confirmed");
         Ok(())
@@ -150,7 +150,7 @@ impl Game {
         for user_bet_slot in self.user_bets.iter_mut() {
             if user_bet_slot.user_key == user_address {
                 if user_bet_slot.side != side {
-                    return Err(SolVsEthErr::AlreadyBet.into());
+                    return Err(QuickBetsErrors::AlreadyBet.into());
                 }
                 user_bet_slot.amount += amount;
                 return Ok(());
@@ -167,7 +167,7 @@ impl Game {
                 return Ok(());
             }
         }
-        Err(SolVsEthErr::NoSpaceLeft.into())
+        Err(QuickBetsErrors::NoSpaceLeft.into())
     }
 
     pub fn get_user_bet(&self, user_address: Pubkey) -> Option<UserBet> {
@@ -186,7 +186,7 @@ impl Game {
                 return Ok(());
             }
         }
-        Err(SolVsEthErr::NoBetFound.into())
+        Err(QuickBetsErrors::NoBetFound.into())
     }
 
     pub fn check_all_bets_claimed(&self) -> bool {

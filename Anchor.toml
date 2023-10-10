@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-sol_vs_eth = "64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD"
+mulberry_quick_bets = "64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD"
 
 [registry]
 url = "https://api.apr.dev"

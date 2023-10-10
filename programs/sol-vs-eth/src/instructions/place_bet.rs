@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
-use crate::sol_vs_eth_errors::SolVsEthErr;
+use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState};
 use crate::utils::transfer_tokens;
 
@@ -12,7 +12,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     let payer = &ctx.accounts.payer;
 
 
-    require!(game.betting_active(global_state.betting_time)?, SolVsEthErr::BettingInactive);
+    require!(game.betting_active(global_state.betting_time)?, QuickBetsErrors::BettingInactive);
 
 
     // check if there's any bet on the other side, if not, then match it upto the max_house_match.
@@ -21,7 +21,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         1 => game.sol_bet_size == 0,
         _ => {
             msg!("Invalid side");
-            return Err(SolVsEthErr::InvalidSide.into());
+            return Err(QuickBetsErrors::InvalidSide.into());
         }
     };
 
@@ -29,7 +29,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         let matched_amount = std::cmp::min(bet_size, global_state.max_house_match);
         if matched_amount > payer.amount {
             msg!("Not enough funds");
-            return Err(SolVsEthErr::HouseBankrupt.into());
+            return Err(QuickBetsErrors::HouseBankrupt.into());
         }
 
         let bump = *ctx.bumps.get("global_auth_pda").unwrap();

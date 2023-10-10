@@ -3,7 +3,7 @@ use anchor_spl::token;
 use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::{GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED};
-use crate::sol_vs_eth_errors::SolVsEthErr;
+use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState};
 
 pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
@@ -14,16 +14,16 @@ pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
 
     for i in ctx.accounts.global_state.game_records.iter() {
         if i.game_address == game.key() {
-            return err!(SolVsEthErr::GameNotClosed);
+            return err!(QuickBetsErrors::GameNotClosed);
         }
     }
 
     ctx.accounts.global_state.to_close = Pubkey::default();
 
 
-    require!(game.check_all_bets_claimed(), SolVsEthErr::BetsNotClaimed);
+    require!(game.check_all_bets_claimed(), QuickBetsErrors::BetsNotClaimed);
 
-    require!(ctx.accounts.game_vault.amount == 0, SolVsEthErr::VaultNotEmpty);
+    require!(ctx.accounts.game_vault.amount == 0, QuickBetsErrors::VaultNotEmpty);
 
     let cpi_accounts = token::CloseAccount {
         account: ctx.accounts.game_vault.to_account_info(),
@@ -58,9 +58,6 @@ pub struct CloseGame<'info> {
 
     #[account(mut)]
     pub game_vault: Account<'info, TokenAccount>,
-
-    #[account(mut)]
-    pub house_wallet: Account<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

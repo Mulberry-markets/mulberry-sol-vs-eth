@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum SolVsEthErr {
+pub enum QuickBetsErrors {
     #[msg("Invalid oracle.")]
     InvalidOracle,
     #[msg("Invalid admin, You are not the admin of this market.")]

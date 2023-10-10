@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
-import { SolVsEth } from "../target/types/sol_vs_eth";
+import { MulberryQuickBets } from "../target/types/mulberry_quick_bets";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, createAccount, createMint, mintTo } from "@solana/spl-token";
 
@@ -28,7 +28,7 @@ describe("sol-vs-eth", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.SolVsEth as Program<SolVsEth>;
+  const program = anchor.workspace.SolVsEth as Program<MulberryQuickBets>;
 
   it("initializing glabal state!", async () => {
 
