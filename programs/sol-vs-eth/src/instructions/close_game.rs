@@ -23,9 +23,7 @@ pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
 
     require!(game.check_all_bets_claimed(), SolVsEthErr::BetsNotClaimed);
 
-    if ctx.accounts.game_vault.amount != 0 {
-        return err!(SolVsEthErr::VaultNotEmpty);
-    }
+    require!(ctx.accounts.game_vault.amount == 0, SolVsEthErr::VaultNotEmpty);
 
     let cpi_accounts = token::CloseAccount {
         account: ctx.accounts.game_vault.to_account_info(),
@@ -60,6 +58,9 @@ pub struct CloseGame<'info> {
 
     #[account(mut)]
     pub game_vault: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub house_wallet: Account<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

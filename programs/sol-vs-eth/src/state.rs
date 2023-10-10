@@ -153,6 +153,7 @@ impl Game {
                     return Err(SolVsEthErr::AlreadyBet.into());
                 }
                 user_bet_slot.amount += amount;
+                return Ok(());
             }
         }
         // User got no bets, look for empty slot

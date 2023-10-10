@@ -12,7 +12,8 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     let global_state = &mut ctx.accounts.global_state;
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
-
+    msg!("betting start : {}", game.betting_start + global_state.betting_time);
+    msg!("current time : {}", Clock::get()?.unix_timestamp as u64);
     if game.betting_start + global_state.betting_time > Clock::get()?.unix_timestamp as u64 {
         return Err(SolVsEthErr::BettingTimeTooSoon.into());
     }

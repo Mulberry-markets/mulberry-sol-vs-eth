@@ -16,8 +16,6 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     require!(!game.is_settled , SolVsEthErr::BetAlreadySettled);
 
-    msg!("anticipation start : {}", game.anticipating_start);
-
     if game.anticipating_start + global_state.anticipation_time > Clock::get()?.unix_timestamp as u64 {
         return Err(SolVsEthErr::AnticipationTimeTooSoon.into());
     }
