@@ -42,12 +42,12 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
             matched_amount,
             Some(seeds),
         )?;
-        game.house_bet_amount = matched_amount;
+        game.house_bet_amount += matched_amount;
         if side == 0 {
-            game.eth_bet_size = matched_amount;
+            game.eth_bet_size += matched_amount;
             // house is betting the opposite side
         } else {
-            game.sol_bet_size = matched_amount;
+            game.sol_bet_size += matched_amount;
         }
     }
 
