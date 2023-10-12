@@ -40,14 +40,16 @@ mod mulberry_quick_bets {
         handle_claim_win(ctx)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn change_global_state(
         ctx: Context<ChangeGlobalState>,
         betting_fees: u64,
         max_house_match: u64,
         betting_period: u64,
         anticipation_period: u64,
-        // max_user_bet: u64,
-        // max_house_bet_size: u64,
+        max_user_bet: u64,
+        max_house_bet_size: u64,
+        min_multiplier: f64,
     ) -> Result<()> {
         handle_change_global_state(
             ctx,
@@ -55,9 +57,9 @@ mod mulberry_quick_bets {
             max_house_match,
             betting_period,
             anticipation_period,
-            1000000,
-            1.5,
-            10000000,
+            max_user_bet,
+            min_multiplier,
+            max_house_bet_size,
         )
     }
 
