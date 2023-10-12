@@ -65,7 +65,7 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         ctx.accounts.house_wallet.to_account_info(),
         ctx.accounts.global_auth_pda.to_account_info(),
         ctx.accounts.token_program.to_account_info(),
-        amount_owed_to_winners,
+        won_by_house,
         Some(seeds),
     )?;
 
