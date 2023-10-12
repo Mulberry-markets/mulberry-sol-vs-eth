@@ -49,13 +49,12 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
         matched_amount = min_sol_bet_required - game.sol_bet_size as f64
     }
 
+    ctx.accounts.global_state.modify_game_record(game.key(), GameStatus::Anticipation);
     if matched_amount == 0.0 {
         return Ok(())
     }
 
-    ctx.accounts
-        .global_state
-        .modify_game_record(game.key(), GameStatus::Anticipation);
+
 
     let bump = *ctx.bumps.get("global_auth_pda").unwrap();
     let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
@@ -81,8 +80,6 @@ pub struct StartAnticipation<'info> {
     pub game: Box<Account<'info, Game>>,
     #[account(mut, seeds = [GLOBAL_STATE_SEED], bump)]
     pub global_state: Account<'info, GlobalState>,
-
-
 
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
     pub house_wallet: Box<Account<'info, TokenAccount>>,
