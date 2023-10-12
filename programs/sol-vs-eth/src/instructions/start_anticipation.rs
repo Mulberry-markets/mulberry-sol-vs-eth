@@ -38,20 +38,25 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     game.initial_eth_price = eth_price;
 
     game.anticipating_start = Clock::get()?.unix_timestamp as u64;
-    let min_eth_bet_required = game.sol_bet_size as f64 * global_state.min_multiplier;
-    let min_sol_bet_required = game.eth_bet_size as f64 * global_state.min_multiplier;
+    let min_for_sol_payout = game.sol_bet_size as f64 * global_state.min_multiplier;
+    let min_for_eth_payout = game.eth_bet_size as f64 * global_state.min_multiplier;
+    let pool_size = game.sol_bet_size + game.eth_bet_size;
 
     let mut matched_amount = 0_f64;
     if min_for_sol_payout > pool_size as f64 {
         matched_amount = min_for_sol_payout - pool_size as f64;
         game.eth_bet_size += matched_amount as u64;
     }
-    if min_sol_bet_required > game.sol_bet_size as f64 {
-        matched_amount = min_sol_bet_required - game.sol_bet_size as f64
+    if min_for_eth_payout > pool_size as f64 {
+        matched_amount = min_for_eth_payout - pool_size as f64;
+        game.sol_bet_size += matched_amount as u64;
+
     }
 
     ctx.accounts.global_state.modify_game_record(game.key(), GameStatus::Anticipation);
-    if matched_amount == 0.0 {
+
+    if matched_amount == 0_f64 {
+        msg!("odds are good enough already, no need to match");
         return Ok(())
     }
 
