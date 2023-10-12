@@ -11,7 +11,7 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
 
 
     require!(game.is_settled, QuickBetsErrors::BetNotSettled);
-    let mut user_bet = if let Some(user_bet) = game.get_user_bet(ctx.accounts.receiver.key()) {
+    let user_bet = if let Some(user_bet) = game.get_user_bet(ctx.accounts.receiver.key()) {
         user_bet
     } else {
         return err!(QuickBetsErrors::NoBetFound);

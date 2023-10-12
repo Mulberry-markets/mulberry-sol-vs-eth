@@ -7,6 +7,7 @@ pub mod claim_win;
 pub mod change_global_state;
 pub mod close_game;
 pub mod change_account_size;
+pub mod withdraw_funds;
 
 
 pub use initialize::*;
@@ -18,3 +19,4 @@ pub use claim_win::*;
 pub use change_global_state::*;
 pub use close_game::*;
 pub use change_account_size::*;
+pub use withdraw_funds::*;

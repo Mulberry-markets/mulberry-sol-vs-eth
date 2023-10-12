@@ -42,22 +42,26 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         .global_state
         .modify_game_record(game.key(), GameStatus::Resolved);
 
+    let pool_size = game.sol_bet_size + game.eth_bet_size;
     let winners_multiplier = if game.get_winner() == 0 {
-        game.sol_bet_size as f64 / game.eth_bet_size as f64
+        pool_size as f64 / game.sol_bet_size as f64
     } else if game.get_winner() == 1 {
-        game.eth_bet_size as f64 / game.sol_bet_size as f64
+        pool_size as f64 / game.eth_bet_size as f64
     } else {
         0.0
     };
 
+    msg!("multiplier: {}", winners_multiplier);
+
     let amount_owed_to_winners = game.get_amount_owed_to_winners(winners_multiplier);
 
-    if amount_owed_to_winners == 0 {
-        return Ok(());
-    }
-
+    msg!("Amount owed to winners: {}", amount_owed_to_winners);
+    msg!("Amount in game vault: {}", ctx.accounts.game_vault.amount);
     let won_by_house = ctx.accounts.game_vault.amount - amount_owed_to_winners;
 
+    if won_by_house == 0 {
+        return Ok(());
+    }
     let bump = *ctx.bumps.get("global_auth_pda").unwrap();
     let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
     transfer_tokens(
