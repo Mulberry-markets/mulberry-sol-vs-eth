@@ -14,9 +14,11 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
-    require!(!game.is_settled , QuickBetsErrors::BetAlreadySettled);
+    require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
 
-    if game.anticipating_start + global_state.anticipation_time > Clock::get()?.unix_timestamp as u64 {
+    if game.anticipating_start + global_state.anticipation_time
+        > Clock::get()?.unix_timestamp as u64
+    {
         return Err(QuickBetsErrors::AnticipationTimeTooSoon.into());
     }
 
@@ -28,7 +30,6 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
-
     let sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
     let eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
 
@@ -37,52 +38,39 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     game.is_settled = true;
     game.anticipating_end = Clock::get()?.unix_timestamp as u64;
 
-    ctx.accounts.global_state.modify_game_record(game.key(), GameStatus::Resolved);
+    ctx.accounts
+        .global_state
+        .modify_game_record(game.key(), GameStatus::Resolved);
 
-    if game.get_winner() == 2 {
-        msg!("Draw, refunding the house's bet");
-        let bump = *ctx.bumps.get("global_auth_pda").unwrap();
-        let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
-        transfer_tokens(
-            ctx.accounts.game_vault.to_account_info(),
-            ctx.accounts.house_wallet.to_account_info(),
-            ctx.accounts.global_auth_pda.to_account_info(),
-            ctx.accounts.token_program.to_account_info(),
-            game.house_bet_amount,
-            Some(seeds),
-        )?;
+    let winners_multiplier = if game.get_winner() == 0 {
+        game.sol_bet_size as f64 / game.eth_bet_size as f64
+    } else if game.get_winner() == 1 {
+        game.eth_bet_size as f64 / game.sol_bet_size as f64
+    } else {
+        0.0
+    };
+
+    let amount_owed_to_winners = game.get_amount_owed_to_winners(winners_multiplier);
+
+    if amount_owed_to_winners == 0 {
+        return Ok(());
     }
 
-    if game.get_winner() == game.house_bet_side {
-        let total_pool_size = game.sol_bet_size + game.eth_bet_size;
-        let total_sol_bets = game.sol_bet_size;
-        let total_eth_bets = game.eth_bet_size;
-        let mut winning_amount = 0;
-        if game.house_bet_side == 0 {
-            // this means the user bet on sol, and sol won
-            let user_pool_share = game.house_bet_amount as f64 / total_sol_bets as f64;
-            winning_amount = (total_pool_size as f64 * user_pool_share) as u64;
-        } else {
-            // this means the user bet on eth, and eth won
-            let user_pool_share = game.house_bet_amount as f64 / total_eth_bets as f64;
-            winning_amount = (total_pool_size as f64 * user_pool_share) as u64;
-        }
+    let won_by_house = ctx.accounts.game_vault.amount - amount_owed_to_winners;
 
-        let bump = *ctx.bumps.get("global_auth_pda").unwrap();
-        let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
-        transfer_tokens(
-            ctx.accounts.game_vault.to_account_info(),
-            ctx.accounts.house_wallet.to_account_info(),
-            ctx.accounts.global_auth_pda.to_account_info(),
-            ctx.accounts.token_program.to_account_info(),
-            winning_amount,
-            Some(seeds),
-        )?;
-    }
+    let bump = *ctx.bumps.get("global_auth_pda").unwrap();
+    let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
+    transfer_tokens(
+        ctx.accounts.game_vault.to_account_info(),
+        ctx.accounts.house_wallet.to_account_info(),
+        ctx.accounts.global_auth_pda.to_account_info(),
+        ctx.accounts.token_program.to_account_info(),
+        amount_owed_to_winners,
+        Some(seeds),
+    )?;
 
     Ok(())
 }
-
 
 #[derive(Accounts)]
 pub struct ResolveBet<'info> {

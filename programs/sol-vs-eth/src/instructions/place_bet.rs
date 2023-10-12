@@ -17,18 +17,18 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
 
     // check if there's any bet on the other side, if not, then match it upto the max_house_match.
     let match_bet = match side {
-        0 => game.eth_bet_size == 0,
-        1 => game.sol_bet_size == 0,
+        0 => global_state.max_house_match > game.house_bet_amount,
+        1 => global_state.max_house_match > game.house_bet_amount,
         _ => {
             msg!("Invalid side");
             return Err(QuickBetsErrors::InvalidSide.into());
         }
     };
-
+    let house_match_left = global_state.max_house_match - game.house_bet_amount;
     if match_bet {
-        let matched_amount = std::cmp::min(bet_size, global_state.max_house_match);
-        if matched_amount > payer.amount {
-            msg!("Not enough funds");
+        let matched_amount = std::cmp::min(bet_size, house_match_left);
+        if matched_amount > ctx.accounts.house_wallet.amount {
+            msg!("Not enough funds to match bet");
             return Err(QuickBetsErrors::HouseBankrupt.into());
         }
 
@@ -46,10 +46,8 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         if side == 0 {
             game.eth_bet_size = matched_amount;
             // house is betting the opposite side
-            game.house_bet_side = 1;
         } else {
             game.sol_bet_size = matched_amount;
-            game.house_bet_side = 0;
         }
     }
 
@@ -81,7 +79,8 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     } else {
         game.eth_bet_size += bet_size;
     }
-    game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
+    let total_user_bet = game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
+    require!(total_user_bet <= global_state.max_user_bet, QuickBetsErrors::MaxUserBetExceeded);
     Ok(())
 }
 

@@ -33,6 +33,15 @@ pub struct GlobalState {
     pub game_records: [GameRecord; 5],
 
     pub to_close: Pubkey,
+
+    // the minimum multiplier for users bets
+    pub min_multiplier: f64,
+
+    // a theoretical limit to how much the house is willing to bet even if it's a partial match
+    pub max_house_bet_size: u64,
+
+    // the maximum bet size from a user
+    pub max_user_bet: u64,
 }
 
 impl GlobalState {
@@ -115,7 +124,6 @@ pub struct Game {
 
     // a max of 25 users can bet on each side.
     pub user_bets: [UserBet; 20],
-
 }
 
 impl Game {
@@ -145,7 +153,13 @@ impl Game {
         Ok(true)
     }
 
-    pub fn add_user_bet(&mut self, user_address: Pubkey, owner: Pubkey, amount: u64, side: u8) -> Result<()> {
+    pub fn add_user_bet(
+        &mut self,
+        user_address: Pubkey,
+        owner: Pubkey,
+        amount: u64,
+        side: u8,
+    ) -> Result<u64> {
         // look if they have a bet on there already
         for user_bet_slot in self.user_bets.iter_mut() {
             if user_bet_slot.user_key == user_address {
@@ -153,7 +167,7 @@ impl Game {
                     return Err(QuickBetsErrors::AlreadyBet.into());
                 }
                 user_bet_slot.amount += amount;
-                return Ok(());
+                return Ok(user_bet_slot.amount);
             }
         }
         // User got no bets, look for empty slot
@@ -164,7 +178,7 @@ impl Game {
                 user_bet_slot.claimed = false;
                 user_bet_slot.side = side;
                 user_bet_slot.owner = owner;
-                return Ok(());
+                return Ok(user_bet_slot.amount);
             }
         }
         Err(QuickBetsErrors::NoSpaceLeft.into())
@@ -190,14 +204,34 @@ impl Game {
     }
 
     pub fn check_all_bets_claimed(&self) -> bool {
-        let winnning_side = self.get_winner();
+        let winning_side = self.get_winner();
 
         for user_bet_slot in self.user_bets.iter() {
-            if !user_bet_slot.claimed && user_bet_slot.user_key != Pubkey::default() && user_bet_slot.side == winnning_side {
+            if !user_bet_slot.claimed
+                && user_bet_slot.user_key != Pubkey::default()
+                && user_bet_slot.side == winning_side
+            {
                 return false;
             }
         }
         true
+    }
+
+    pub fn get_amount_owed_to_winners(&self, winner_multiplier : f64) -> u64 {
+        let winning_side = self.get_winner();
+        let mut amount = 0;
+        if winning_side == 2 {
+            for user_bet_slot in self.user_bets.iter() {
+                amount += user_bet_slot.amount;
+            }
+            return amount;
+        }
+        for user_bet_slot in self.user_bets.iter() {
+            if user_bet_slot.side == winning_side {
+                amount += user_bet_slot.amount;
+            }
+        }
+        (amount as f64 * winner_multiplier) as u64
     }
 }
 

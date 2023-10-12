@@ -24,13 +24,13 @@ const SOL_ORACLE = "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG";
 const OPTS: anchor.web3.ConfirmOptions = {
   skipPreflight: true,
 };
-describe("sol-vs-eth", () => {
+describe("Mulberry quick bets", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.SolVsEth as Program<MulberryQuickBets>;
+  const program = anchor.workspace.MulberryQuickBets as Program<MulberryQuickBets>;
 
-  it("initializing glabal state!", async () => {
+  it("initializing global state!", async () => {
 
     await program.provider.connection.confirmTransaction(await program.provider.connection.requestAirdrop(payer.publicKey, 10_000_000_000));
     const connection = program.provider.connection;
@@ -67,11 +67,21 @@ describe("sol-vs-eth", () => {
 
   });
   it("change global state", async () => {
-    const tx = await program.methods.changeGlobalState(new BN(500), new BN(0.5 * 1e6), new BN(10), new BN(10)).accounts({
-      signer: program.provider.publicKey,
-      globalState,
-      newCrankAdmin: program.provider.publicKey,
+    const tx = await program.methods.changeGlobalState(
+      new BN(500), new BN(10 * 1e6), new BN(10), new BN(10)).accounts({
+        signer: program.provider.publicKey,
+        globalState,
+        newCrankAdmin: program.provider.publicKey,
+      }).rpc(OPTS);
+  });
+
+  it("increase size of global state", async () => {
+    const tx = await program.methods.changeAccountSize(new BN(1000)).accounts({
+        signer: program.provider.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      accountToResize: globalState,
     }).rpc(OPTS);
+    console.log(tx)
   });
   it("creating a new game", async () => {
 
@@ -103,7 +113,6 @@ describe("sol-vs-eth", () => {
     const tx = await program.methods.placeBet(new BN(1000), 0).accounts({
       signer: program.provider.publicKey,
       game: bettingGameAddress,
-      bettingToken,
       globalAuthPda,
       globalState,
       gameVault,
@@ -111,8 +120,6 @@ describe("sol-vs-eth", () => {
       payer: userTokenAccount,
       systemProgram: anchor.web3.SystemProgram.programId,
       tokenProgram: TOKEN_PROGRAM_ID,
-
-
     }).rpc(OPTS);
   });
 
@@ -121,7 +128,6 @@ describe("sol-vs-eth", () => {
       const tx = await program.methods.placeBet(new BN(1000), 1).accounts({
         signer: program.provider.publicKey,
         game: bettingGameAddress,
-        bettingToken,
         globalAuthPda,
         globalState,
         gameVault,
@@ -139,13 +145,18 @@ describe("sol-vs-eth", () => {
   it("start anticipation", async () => {
 
     // wait for 10 seconds
+    console.log(houseWallet.toBase58())
     await new Promise((resolve) => setTimeout(resolve, 10000));
     const tx = await program.methods.startAnticipation().accounts({
       signer: program.provider.publicKey,
+      gameVault,
+      globalAuthPda,
+      houseWallet,
       game: bettingGameAddress,
       globalState,
       ethFeed: new PublicKey(ETH_ORACLE),
       solFeed: new PublicKey(SOL_ORACLE),
+      tokenProgram: TOKEN_PROGRAM_ID,
     }).rpc(OPTS);
     console.log(tx);
   })
@@ -155,7 +166,6 @@ describe("sol-vs-eth", () => {
       const tx = await program.methods.placeBet(new BN(1000), 0).accounts({
         signer: program.provider.publicKey,
         game: bettingGameAddress,
-        bettingToken,
         globalAuthPda,
         globalState,
         gameVault,
@@ -195,7 +205,6 @@ describe("sol-vs-eth", () => {
       globalAuthPda,
       globalState,
       receiver: userTokenAccount,
-      signer: program.provider.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
     }).rpc(OPTS);
   });

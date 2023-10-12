@@ -39,5 +39,9 @@ pub enum QuickBetsErrors {
     #[msg("too early to close the game")]
     GameNotClosed,
     #[msg("Game vault mismatch")]
-    GameVaultMismatch
+    GameVaultMismatch,
+    #[msg("Max user bet exceeded")]
+    MaxUserBetExceeded,
+    #[msg("Your size isn't size")]
+    InvalidSize
 }

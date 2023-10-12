@@ -26,6 +26,11 @@ pub fn handle_initialize(ctx: Context<Initialize>) -> Result<()> {
 
     global_state.betting_currency = ctx.accounts.betting_currency.key();
 
+    global_state.max_user_bet = 50 * 1_000_000;
+
+    global_state.max_house_bet_size = 100 * 1_000_000;
+
+    global_state.min_multiplier = 1.5;
 
     Ok(())
 }
@@ -39,7 +44,7 @@ pub struct Initialize<'info> {
     seeds = [GLOBAL_STATE_SEED], bump,
     payer = signer,
     // leaving some extra space for future upgrades
-    space = 350)]
+    space = 400)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
     #[account(init,
@@ -49,8 +54,7 @@ pub struct Initialize<'info> {
     space = size_of::< GlobalAuth > () + 12)]
     pub global_auth_pda: Box<Account<'info, GlobalAuth>>,
 
-
-    pub betting_currency : Account<'info, Mint>,
+    pub betting_currency: Account<'info, Mint>,
     #[account(init, payer = signer, token::mint = betting_currency, token::authority = global_auth_pda)]
     pub house_wallet: Account<'info, TokenAccount>,
 

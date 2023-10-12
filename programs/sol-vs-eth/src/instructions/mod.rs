@@ -6,6 +6,7 @@ pub mod start_anticipation;
 pub mod claim_win;
 pub mod change_global_state;
 pub mod close_game;
+pub mod change_account_size;
 
 
 pub use initialize::*;
@@ -16,3 +17,4 @@ pub use start_anticipation::*;
 pub use claim_win::*;
 pub use change_global_state::*;
 pub use close_game::*;
+pub use change_account_size::*;
