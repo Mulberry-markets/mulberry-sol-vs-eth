@@ -50,17 +50,21 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     if min_for_eth_payout > pool_size as f64 {
         matched_amount = min_for_eth_payout - pool_size as f64;
         game.sol_bet_size += matched_amount as u64;
-
     }
 
-    ctx.accounts.global_state.modify_game_record(game.key(), GameStatus::Anticipation);
+    matched_amount = std::cmp::min(
+        matched_amount as u64,
+        global_state.max_house_bet_size - game.house_bet_amount,
+    ) as f64;
+
+    ctx.accounts
+        .global_state
+        .modify_game_record(game.key(), GameStatus::Anticipation);
 
     if matched_amount == 0_f64 {
         msg!("odds are good enough already, no need to match");
-        return Ok(())
+        return Ok(());
     }
-
-
 
     let bump = *ctx.bumps.get("global_auth_pda").unwrap();
     let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
@@ -72,8 +76,6 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
         matched_amount as u64,
         Some(seeds),
     )?;
-
-
 
     Ok(())
 }
@@ -89,7 +91,7 @@ pub struct StartAnticipation<'info> {
 
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
     pub house_wallet: Box<Account<'info, TokenAccount>>,
-    
+
     #[account(mut)]
     pub game_vault: Box<Account<'info, TokenAccount>>,
     /// CHECK: Checking this manually in the instruction
