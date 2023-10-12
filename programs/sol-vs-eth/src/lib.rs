@@ -82,6 +82,10 @@ mod mulberry_quick_bets {
     pub fn change_account_size(ctx: Context<ChangeAccountSize>, new_size: u64) -> Result<()> {
         handle_change_account_size(ctx, new_size)
     }
+
+    pub fn withdraw_funds(ctx: Context<WithdrawFunds>, amount: u64) -> Result<()> {
+        handle_withdraw_funds(ctx, amount)
+    }
 }
 
 #[derive(Accounts)]
