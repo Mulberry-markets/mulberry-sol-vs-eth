@@ -42,8 +42,9 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     let min_sol_bet_required = game.eth_bet_size as f64 * global_state.min_multiplier;
 
     let mut matched_amount = 0_f64;
-    if min_eth_bet_required > game.eth_bet_size as f64 {
-        matched_amount = min_eth_bet_required - game.eth_bet_size as f64
+    if min_for_sol_payout > pool_size as f64 {
+        matched_amount = min_for_sol_payout - pool_size as f64;
+        game.eth_bet_size += matched_amount as u64;
     }
     if min_sol_bet_required > game.sol_bet_size as f64 {
         matched_amount = min_sol_bet_required - game.sol_bet_size as f64

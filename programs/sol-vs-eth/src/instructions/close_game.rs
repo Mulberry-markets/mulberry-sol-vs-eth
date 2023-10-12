@@ -5,6 +5,7 @@ use anchor_spl::token::{Token, TokenAccount};
 use crate::consts::{GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState};
+// use crate::utils::transfer_tokens;
 
 pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
     ctx.accounts.global_state.confirm_crank_admin(&ctx.accounts.signer)?;
@@ -19,8 +20,16 @@ pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
     }
 
     ctx.accounts.global_state.to_close = Pubkey::default();
-
-
+    // let bump = *ctx.bumps.get("global_auth_pda").unwrap();
+    // let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
+    // transfer_tokens(
+    //     ctx.accounts.game_vault.to_account_info(),
+    //     ctx.accounts.house_wallet.to_account_info(),
+    //     ctx.accounts.global_auth_pda.to_account_info(),
+    //     ctx.accounts.token_program.to_account_info(),
+    //     ctx.accounts.game_vault.amount,
+    //     Some(seeds),
+    // )?;
     require!(game.check_all_bets_claimed(), QuickBetsErrors::BetsNotClaimed);
 
     require!(ctx.accounts.game_vault.amount == 0, QuickBetsErrors::VaultNotEmpty);
@@ -58,6 +67,9 @@ pub struct CloseGame<'info> {
 
     #[account(mut)]
     pub game_vault: Account<'info, TokenAccount>,
+
+    #[account(mut)]
+    pub house_wallet : Account<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
