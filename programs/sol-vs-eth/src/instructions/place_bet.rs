@@ -79,7 +79,9 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     } else {
         game.eth_bet_size += bet_size;
     }
+    msg!("user bet size : {}", bet_size);
     let total_user_bet = game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
+    msg!("total user bet : {}", total_user_bet);
     require!(total_user_bet <= global_state.max_user_bet, QuickBetsErrors::MaxUserBetExceeded);
     Ok(())
 }

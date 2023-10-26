@@ -228,10 +228,11 @@ impl Game {
         }
         for user_bet_slot in self.user_bets.iter() {
             if user_bet_slot.side == winning_side {
-                amount += user_bet_slot.amount;
+                // amount += user_bet_slot.amount;
+                amount += (user_bet_slot.amount as f64 * winner_multiplier) as u64;
             }
         }
-        (amount as f64 * winner_multiplier) as u64
+        amount
     }
 }
 

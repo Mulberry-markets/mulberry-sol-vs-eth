@@ -15,7 +15,8 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
     require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
-
+    msg!("anticipation start : {}",game.anticipating_start);
+    msg!("current time: {} ", Clock::get()?.unix_timestamp);
     if game.anticipating_start + global_state.anticipation_time
         > Clock::get()?.unix_timestamp as u64
     {
@@ -51,10 +52,8 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         0.0
     };
 
-    msg!("multiplier: {}", winners_multiplier);
 
     let amount_owed_to_winners = game.get_amount_owed_to_winners(winners_multiplier);
-
     msg!("Amount owed to winners: {}", amount_owed_to_winners);
     msg!("Amount in game vault: {}", ctx.accounts.game_vault.amount);
     let won_by_house = ctx.accounts.game_vault.amount - amount_owed_to_winners;

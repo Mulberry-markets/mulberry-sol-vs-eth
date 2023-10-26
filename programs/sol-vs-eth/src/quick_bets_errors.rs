@@ -24,7 +24,7 @@ pub enum QuickBetsErrors {
     BetNotSettled,
     #[msg("Bet already claimed")]
     AlreadyClaimed,
-    #[msg("Bet not claimed")]
+    #[msg("Game is inactive")]
     BettingInactive,
     #[msg("Unauthorized")]
     Unauthorized,
@@ -43,5 +43,7 @@ pub enum QuickBetsErrors {
     #[msg("Max user bet exceeded")]
     MaxUserBetExceeded,
     #[msg("Your size isn't size")]
-    InvalidSize
+    InvalidSize,
+    #[msg("Oracle didn't update in 10 seconds or more")]
+    StaleOracle
 }

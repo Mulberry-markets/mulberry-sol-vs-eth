@@ -8,6 +8,7 @@ pub mod change_global_state;
 pub mod close_game;
 pub mod change_account_size;
 pub mod withdraw_funds;
+mod create_user_profile;
 
 
 pub use initialize::*;

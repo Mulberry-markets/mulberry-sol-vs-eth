@@ -8,8 +8,8 @@ mulberry_quick_bets = "64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-# cluster = "mainnet"
+# cluster = "Localnet"
+cluster = "mainnet"
 wallet = "/root/.config/solana/id.json"
 
 [[test.validator.clone]]

@@ -2,10 +2,14 @@ use anchor_lang::prelude::*;
 use anchor_spl::token;
 use pyth_sdk_solana::load_price_feed_from_account_info;
 
+use crate::quick_bets_errors::QuickBetsErrors;
+
 pub fn get_price_from_pyth(oracle_address: AccountInfo) -> Result<u64> {
     let price_feed = load_price_feed_from_account_info(&oracle_address).unwrap();
 
-    let price = price_feed.get_price_no_older_than(Clock::get()?.unix_timestamp, 10).unwrap();
+    let price = price_feed
+        .get_price_no_older_than(Clock::get()?.unix_timestamp, 10)
+        .ok_or(QuickBetsErrors::StaleOracle)?;
     // let price = price_feed.get_price_unchecked();
 
     let price_lots = price.price;
