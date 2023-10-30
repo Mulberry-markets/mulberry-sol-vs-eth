@@ -5,11 +5,16 @@ use anchor_spl::token::{Mint, Token};
 use anchor_spl::token::TokenAccount;
 
 use crate::consts::{GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED};
-use crate::state::{Game, GlobalAuth, GlobalState};
+use crate::quick_bets_errors::QuickBetsErrors;
+use crate::state::{Game, GameStatus, GlobalAuth, GlobalState};
 
 pub fn handle_start_game(ctx: Context<StartGame>) -> Result<()> {
     ctx.accounts.global_state.confirm_crank_admin(&ctx.accounts.signer)?;
-
+    for game in ctx.accounts.global_state.game_records.iter() {
+        if game.status != GameStatus::Resolved {
+            return Err(QuickBetsErrors::GameInProgress.into());
+        }
+    }
     let game = &mut ctx.accounts.game;
     game.betting_start = Clock::get()?.unix_timestamp as u64;
     game.eth_bet_size = 0;

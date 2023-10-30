@@ -45,5 +45,7 @@ pub enum QuickBetsErrors {
     #[msg("Your size isn't size")]
     InvalidSize,
     #[msg("Oracle didn't update in 10 seconds or more")]
-    StaleOracle
+    StaleOracle,
+    #[msg("Game in progress")]
+    GameInProgress
 }

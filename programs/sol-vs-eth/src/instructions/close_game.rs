@@ -5,7 +5,7 @@ use anchor_spl::token::{Token, TokenAccount};
 use crate::consts::{GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState};
-use crate::utils::transfer_tokens;
+// use crate::utils::transfer_tokens;
 // use crate::utils::transfer_tokens;
 
 pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {

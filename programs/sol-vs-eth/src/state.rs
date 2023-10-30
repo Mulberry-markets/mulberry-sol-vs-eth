@@ -80,7 +80,7 @@ pub struct GameRecord {
     pub status: GameStatus,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, PartialEq)]
 pub enum GameStatus {
     #[default]
     Betting,
@@ -228,7 +228,6 @@ impl Game {
         }
         for user_bet_slot in self.user_bets.iter() {
             if user_bet_slot.side == winning_side {
-                // amount += user_bet_slot.amount;
                 amount += (user_bet_slot.amount as f64 * winner_multiplier) as u64;
             }
         }
