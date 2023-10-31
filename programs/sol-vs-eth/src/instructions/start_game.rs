@@ -1,17 +1,19 @@
 use std::mem::size_of;
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token};
 use anchor_spl::token::TokenAccount;
+use anchor_spl::token::{Mint, Token};
 
 use crate::consts::{GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GameStatus, GlobalAuth, GlobalState};
 
 pub fn handle_start_game(ctx: Context<StartGame>) -> Result<()> {
-    ctx.accounts.global_state.confirm_crank_admin(&ctx.accounts.signer)?;
+    ctx.accounts
+        .global_state
+        .confirm_crank_admin(&ctx.accounts.signer)?;
     for game in ctx.accounts.global_state.game_records.iter() {
-        if game.status != GameStatus::Resolved {
+        if game.status != GameStatus::Resolved && game.game_address != Pubkey::default() {
             return Err(QuickBetsErrors::GameInProgress.into());
         }
     }
@@ -21,11 +23,12 @@ pub fn handle_start_game(ctx: Context<StartGame>) -> Result<()> {
     game.sol_bet_size = 0;
     game.game_vault = ctx.accounts.game_vault.key();
 
-    ctx.accounts.global_state.add_game_record(ctx.accounts.game.key());
+    ctx.accounts
+        .global_state
+        .add_game_record(ctx.accounts.game.key());
 
     Ok(())
 }
-
 
 #[derive(Accounts)]
 pub struct StartGame<'info> {

@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
-use crate::consts::{ETH_ORACLE, GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED, SOL_ORACLE};
+use crate::consts::{ETH_ORACLE, GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED, MARGIN_OF_ERROR, SOL_ORACLE};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GameStatus, GlobalAuth, GlobalState};
 use crate::utils::{get_price_from_pyth, transfer_tokens};
@@ -17,11 +17,11 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
     msg!("anticipation start : {}",game.anticipating_start);
     msg!("current time: {} ", Clock::get()?.unix_timestamp);
-    if game.anticipating_start + global_state.anticipation_time
-        > Clock::get()?.unix_timestamp as u64
-    {
+
+    if game.anticipating_start + global_state.anticipation_time > Clock::get()?.unix_timestamp as u64 + MARGIN_OF_ERROR {
         return Err(QuickBetsErrors::AnticipationTimeTooSoon.into());
     }
+
 
     if Pubkey::from_str(SOL_ORACLE).unwrap() != *ctx.accounts.sol_feed.key {
         return Err(QuickBetsErrors::InvalidOracle.into());

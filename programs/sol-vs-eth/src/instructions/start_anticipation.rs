@@ -3,7 +3,7 @@ use std::str::FromStr;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
-use crate::consts::{ETH_ORACLE, GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED, SOL_ORACLE};
+use crate::consts::{ETH_ORACLE, GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED, MARGIN_OF_ERROR, SOL_ORACLE};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GameStatus, GlobalAuth, GlobalState};
 use crate::utils::{get_price_from_pyth, transfer_tokens};
@@ -14,9 +14,12 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
-    msg!("anticipation start : {}",game.betting_start);
-    msg!("current time: {} ",Clock::get()?.unix_timestamp);
-    if game.betting_start + global_state.betting_time > Clock::get()?.unix_timestamp as u64 {
+    msg!("anticipation start : {}", game.betting_start);
+    msg!("current time: {} ", Clock::get()?.unix_timestamp);
+    // the + 1 at the end is the game allowing a margin of error of 1 second,
+    // most games should still end at the exact time
+
+    if game.betting_start + global_state.betting_time > Clock::get()?.unix_timestamp as u64 + MARGIN_OF_ERROR {
         return Err(QuickBetsErrors::BettingTimeTooSoon.into());
     }
 

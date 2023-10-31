@@ -5,6 +5,8 @@ use crate::consts::GLOBAL_AUTH_SEED;
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState};
 use crate::utils::transfer_tokens;
+use std::str::FromStr;
+
 
 pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Result<()> {
     let game = &mut ctx.accounts.game;
@@ -108,6 +110,8 @@ pub struct PlaceBet<'info> {
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
     pub house_wallet: Box<Account<'info, TokenAccount>>,
 
+    #[account(mut, address = Pubkey::from_str("GnVThWobQUHgr99r1ihvPbnUK5YXTMSCXFQP74XSuT67").unwrap())]
+    pub fees_wallet : Box<Account<'info, TokenAccount>>,
     pub global_state: Box<Account<'info, GlobalState>>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

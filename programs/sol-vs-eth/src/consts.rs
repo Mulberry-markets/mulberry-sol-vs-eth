@@ -7,3 +7,5 @@ pub const SOL_ORACLE: &str = "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG";
 
 
 pub const ADMIN_WALLETS : &str= &"5GrCgeZRNtGgKe7ezhSo5vU6ug68JsrC1FCo9246DBgg";
+
+pub const MARGIN_OF_ERROR : u64= 1;
