@@ -217,7 +217,7 @@ impl Game {
         true
     }
 
-    pub fn get_amount_owed_to_winners(&self, winner_multiplier : f64) -> u64 {
+    pub fn get_amount_owed_to_winners(&self, winner_multiplier: f64) -> u64 {
         let winning_side = self.get_winner();
         let mut amount = 0;
         if winning_side == 2 {
@@ -226,6 +226,7 @@ impl Game {
             }
             return amount;
         }
+
         for user_bet_slot in self.user_bets.iter() {
             if user_bet_slot.side == winning_side {
                 amount += (user_bet_slot.amount as f64 * winner_multiplier) as u64;
@@ -242,4 +243,81 @@ pub struct UserBet {
     pub claimed: bool,
     pub side: u8,
     pub owner: Pubkey,
+}
+
+#[account]
+pub struct User {
+    pub last_spin: u64,
+    pub reward: u16,
+    pub claimed: bool,
+    pub volume_24h: u64,
+    pub current_win_streak: u8,
+    pub current_lose_streak: u8,
+    pub last_game_bet_size: u64,
+    pub total_points: u16,
+}
+
+impl User {
+    pub fn check_spin_eligible(&self) -> Result<()> {
+        let current_time = Clock::get().unwrap().unix_timestamp as u64;
+        if !(current_time > self.last_spin + 60 * 60 * 24 && self.volume_24h >= 5 * 1e6 as u64) {
+            return err!(QuickBetsErrors::NotEligible);
+        }
+        if !self.claimed && self.last_spin != 0 {
+            return err!(QuickBetsErrors::RewardNotClaimed);
+        }
+
+        Ok(())
+    }
+
+    pub fn register_spin(&mut self, reward: u16) {
+        let current_time = Clock::get().unwrap().unix_timestamp as u64;
+        self.last_spin = current_time;
+        self.reward += reward;
+        self.claimed = false;
+        self.volume_24h = 0;
+    }
+
+    pub fn add_volume(&mut self, volume: u64) {
+        // if they had 24 hour since their last reward, reset the volume
+        let current_time = Clock::get().unwrap().unix_timestamp as u64;
+        if current_time > self.last_spin + 60 * 60 * 24 && !self.claimed {
+            self.volume_24h += volume;
+        }
+    }
+
+    pub fn add_bet_record(&mut self, bet_size: u64, win: bool) {
+        self.last_game_bet_size = bet_size;
+        if win {
+            self.current_win_streak += 1;
+            self.current_lose_streak = 0;
+            if self.current_win_streak == 3
+                || self.current_win_streak == 5
+                || self.current_win_streak == 7
+                || self.current_win_streak > 7
+            {
+                if self.last_game_bet_size >= (0.25 * 1e6) as u64 && bet_size >= (0.25 * 1e6) as u64
+                {
+                    self.total_points += 2;
+                } else {
+                    self.total_points += 1;
+                }
+            }
+        } else if !win {
+            self.current_lose_streak += 1;
+            self.current_win_streak = 0;
+            if self.current_lose_streak == 3
+                || self.current_lose_streak == 5
+                || self.current_lose_streak == 7
+                || self.current_lose_streak > 7
+            {
+                if self.last_game_bet_size >= (0.25 * 1e6) as u64 && bet_size >= (0.25 * 1e6) as u64
+                {
+                    self.total_points += 2;
+                } else {
+                    self.total_points += 1;
+                }
+            }
+        }
+    }
 }

@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
-use crate::consts::GLOBAL_AUTH_SEED;
+use crate::consts::{GLOBAL_AUTH_SEED, USER_ACCOUNT_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
-use crate::state::{Game, GlobalAuth, GlobalState};
+use crate::state::{Game, GlobalAuth, User};
 use crate::utils::transfer_tokens;
 
 pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
@@ -18,16 +18,20 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
 
     if user_bet.claimed {
         msg!("You have already claimed your bet");
-        return Ok(())
+        return Ok(());
     }
     // require!(!user_bet.claimed, QuickBetsErrors::AlreadyClaimed);
+    let user_bet_size = user_bet.amount;
+
+    // adding user streak
+    ctx.accounts
+        .user_account
+        .add_bet_record(user_bet_size, user_bet.side == game.get_winner());
 
     if game.get_winner() != 2 && user_bet.side != game.get_winner() {
         msg!("You are not on the winning side");
         return Err(QuickBetsErrors::NotOnWinningSide.into());
     }
-
-    let user_bet_size = user_bet.amount;
 
     game.mark_bet_claimed(ctx.accounts.receiver.key())?;
 
@@ -85,8 +89,12 @@ pub struct ClaimWin<'info> {
     pub global_auth_pda: Box<Account<'info, GlobalAuth>>,
     #[account(mut, constraint = game.game_vault == game_vault.key())]
     pub game_vault: Account<'info, TokenAccount>,
-    #[account(mut)]
+
+    /// CHECK: Account doesn't matter in itself, receiver is the bet identifier.
+    pub owner: AccountInfo<'info>,
+    #[account(mut, seeds = [USER_ACCOUNT_SEED, owner.key.as_ref()], bump)]
+    pub user_account: Account<'info, User>,
+    #[account(mut, token::authority = owner)]
     pub receiver: Account<'info, TokenAccount>,
-    pub global_state: Account<'info, GlobalState>,
     pub token_program: Program<'info, Token>,
 }

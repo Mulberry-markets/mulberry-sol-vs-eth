@@ -47,5 +47,11 @@ pub enum QuickBetsErrors {
     #[msg("Oracle didn't update in 10 seconds or more")]
     StaleOracle,
     #[msg("Game in progress")]
-    GameInProgress
+    GameInProgress,
+    #[msg("Not eligible for a spin yet")]
+    NotEligible,
+    #[msg("Reward not claimed yet")]
+    RewardNotClaimed,
+    #[msg("Insufficient balance")]
+    InsufficientBalance
 }

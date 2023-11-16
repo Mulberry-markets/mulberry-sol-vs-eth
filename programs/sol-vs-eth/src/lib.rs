@@ -1,8 +1,7 @@
 use anchor_lang::prelude::*;
 
-use crate::state::GlobalState;
-
 use crate::instructions::*;
+use crate::state::GlobalState;
 
 mod consts;
 mod instructions;
@@ -10,7 +9,7 @@ mod quick_bets_errors;
 mod state;
 mod utils;
 
-declare_id!("64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD");
+declare_id!("4D119wzxMd8tCzN1kZ9atxkmjiAQvqVw4N9aLtkSrSej");
 
 #[program]
 mod mulberry_quick_bets {
@@ -85,6 +84,30 @@ mod mulberry_quick_bets {
 
     pub fn withdraw_funds(ctx: Context<WithdrawFunds>, amount: u64) -> Result<()> {
         handle_withdraw_funds(ctx, amount)
+    }
+
+    pub fn use_spin(ctx: Context<UseSpin>, result: u16) -> Result<()> {
+        handle_use_spin(ctx, result)
+    }
+
+    pub fn claim_spin_reward(ctx: Context<ClaimSpinReward>) -> Result<()> {
+        handle_claim_spin_reward(ctx)
+    }
+
+    pub fn create_user_spin_account(ctx: Context<CreateUserSpinAccount>) -> Result<()> {
+        handle_create_user_spin_account(ctx)
+    }
+
+    pub fn close_user_spin_account(ctx: Context<CloseUserSpinAccount>) -> Result<()> {
+        handle_close_user_spin_account(ctx)
+    }
+
+    pub fn deduct_balance(ctx: Context<DeductBalance>, price: u8, item_id: u8) -> Result<()> {
+        handle_deduct_balance(ctx, price, item_id)
+    }
+    
+    pub fn add_balance( ctx: Context<AddBalance>, amount : u16) -> Result<()> {
+        handle_add_balance(ctx, amount)
     }
 }
 

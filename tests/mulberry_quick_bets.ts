@@ -7,6 +7,7 @@ import { TOKEN_PROGRAM_ID, createAccount, createMint, mintTo } from "@solana/spl
 
 const GLOBAL_STATE_SEED = "global-state";
 const GLOBAL_AUTH_SEED = "global-auth";
+const SPIN_REWARDS_SEED = "SPIN_REWARDS_SEED"
 let payer = new anchor.web3.Keypair();
 let globalState: PublicKey;
 let globalAuthPda: PublicKey;
@@ -15,6 +16,9 @@ let bettingToken: PublicKey;
 let gameVault: PublicKey;
 let bettingGameAddress: PublicKey;
 let userTokenAccount: PublicKey;
+let userSpinAccount: PublicKey;
+let that_wallet_key = "1YXExB1ioE7y1UCjwwZcN28asMCnBUNCxhfBLjkMPsJJBEnQpBr1wqsCo4zAu3uMniAqjXcSctTS3LbLVbVxaMd"
+let that_wallet = anchor.web3.Keypair.fromSecretKey(new Uint8Array(JSON.parse(that_wallet_key)));
 
 
 const ETH_ORACLE = "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB";
@@ -62,13 +66,13 @@ describe("Mulberry quick bets", () => {
       tokenProgram: TOKEN_PROGRAM_ID,
     }).signers([houseWallet_]).rpc(OPTS);
 
-    await mintTo(connection, payer, testToken, userTokenAccount, payer, 1000000000);
-    await mintTo(connection, payer, testToken, houseWallet, payer, 1000000000);
+    await mintTo(connection, payer, testToken, userTokenAccount, payer, 10000 * 1e6);
+    await mintTo(connection, payer, testToken, houseWallet, payer, 10000 * 1e6);
 
   });
   it("change global state", async () => {
     const tx = await program.methods.changeGlobalState(
-      new BN(500), new BN(10 * 1e6), new BN(10), new BN(10)).accounts({
+      new BN(500), new BN(10 * 1e6), new BN(10), new BN(10), new BN(50 * 1e6),new BN(50 * 1e6),1.75).accounts({
         signer: program.provider.publicKey,
         globalState,
         newCrankAdmin: program.provider.publicKey,
@@ -106,11 +110,24 @@ describe("Mulberry quick bets", () => {
 
   });
 
+  it ("create a user spin account" , async () => {
+    const [_userSpinAccount, userSpinBump] = await anchor.web3.PublicKey.findProgramAddress(
+      [Buffer.from(SPIN_REWARDS_SEED), program.provider.publicKey.toBuffer()],
+      program.programId
+    );
+    userSpinAccount = _userSpinAccount;
+    const tx = await program.methods.createUserSpinAccount().accounts({
+      signer: program.provider.publicKey,
+      systemProgram: anchor.web3.SystemProgram.programId,
+      userSpinAccount: userSpinAccount,
+    }).rpc(OPTS);
+  })
+
 
   it("betting on a game", async () => {
 
 
-    const tx = await program.methods.placeBet(new BN(1000), 0).accounts({
+    const tx = await program.methods.placeBet(new BN(5 * 1e6), 0).accounts({
       signer: program.provider.publicKey,
       game: bettingGameAddress,
       globalAuthPda,
@@ -118,7 +135,9 @@ describe("Mulberry quick bets", () => {
       gameVault,
       houseWallet,
       payer: userTokenAccount,
+      userAccount: userSpinAccount,
       systemProgram: anchor.web3.SystemProgram.programId,
+      feesWallet: houseWallet,
       tokenProgram: TOKEN_PROGRAM_ID,
     }).rpc(OPTS);
   });
@@ -134,6 +153,8 @@ describe("Mulberry quick bets", () => {
         houseWallet,
         payer: userTokenAccount,
         systemProgram: anchor.web3.SystemProgram.programId,
+        userAccount: userSpinAccount,
+        feesWallet: houseWallet,
         tokenProgram: TOKEN_PROGRAM_ID,
       }).rpc(OPTS);
       console.log(tx)
@@ -171,7 +192,9 @@ describe("Mulberry quick bets", () => {
         gameVault,
         houseWallet,
         payer: userTokenAccount,
+        userAccount: userSpinAccount,
         systemProgram: anchor.web3.SystemProgram.programId,
+        feesWallet: houseWallet,
         tokenProgram: TOKEN_PROGRAM_ID,
       }).rpc(OPTS);
       console.log(tx)

@@ -3,19 +3,20 @@ use anchor_spl::token::{Token, TokenAccount};
 
 use crate::consts::GLOBAL_AUTH_SEED;
 use crate::quick_bets_errors::QuickBetsErrors;
-use crate::state::{Game, GlobalAuth, GlobalState};
+use crate::state::{Game, GlobalAuth, GlobalState, User};
 use crate::utils::transfer_tokens;
 use std::str::FromStr;
-
+use crate::consts::USER_ACCOUNT_SEED;
 
 pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Result<()> {
     let game = &mut ctx.accounts.game;
     let global_state = &ctx.accounts.global_state;
     let payer = &ctx.accounts.payer;
 
-
-    require!(game.betting_active(global_state.betting_time)?, QuickBetsErrors::BettingInactive);
-
+    require!(
+        game.betting_active(global_state.betting_time)?,
+        QuickBetsErrors::BettingInactive
+    );
 
     // check if there's any bet on the other side, if not, then match it upto the max_house_match.
     let match_bet = match side {
@@ -53,7 +54,6 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         }
     }
 
-
     // transfer the user bet to the vault
     transfer_tokens(
         ctx.accounts.payer.to_account_info(),
@@ -68,7 +68,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     let fee = (bet_size as f64 * (global_state.betting_fees as f64 / 100.0 / 100.0)) as u64;
     transfer_tokens(
         ctx.accounts.payer.to_account_info(),
-        ctx.accounts.house_wallet.to_account_info(),
+        ctx.accounts.fees_wallet.to_account_info(),
         ctx.accounts.signer.to_account_info(),
         ctx.accounts.token_program.to_account_info(),
         fee,
@@ -82,12 +82,16 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         game.eth_bet_size += bet_size;
     }
     msg!("user bet size : {}", bet_size);
-    let total_user_bet = game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
+    let total_user_bet =
+        game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
     msg!("total user bet : {}", total_user_bet);
-    require!(total_user_bet <= global_state.max_user_bet, QuickBetsErrors::MaxUserBetExceeded);
+    ctx.accounts.user_account.add_volume(bet_size);
+    require!(
+        total_user_bet <= global_state.max_user_bet,
+        QuickBetsErrors::MaxUserBetExceeded
+    );
     Ok(())
 }
-
 
 #[derive(Accounts)]
 pub struct PlaceBet<'info> {
@@ -110,8 +114,10 @@ pub struct PlaceBet<'info> {
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
     pub house_wallet: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, address = Pubkey::from_str("GnVThWobQUHgr99r1ihvPbnUK5YXTMSCXFQP74XSuT67").unwrap())]
-    pub fees_wallet : Box<Account<'info, TokenAccount>>,
+    #[account(mut, address = Pubkey::from_str("5bhssigFDYdR4MtCzD27mY69odyqFWPsWpxedYzJqDuJ").unwrap())]
+    pub fees_wallet: Box<Account<'info, TokenAccount>>,
+    #[account(mut, seeds = [USER_ACCOUNT_SEED, signer.key.as_ref()], bump)]
+    pub user_account: Account<'info, User>,
     pub global_state: Box<Account<'info, GlobalState>>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,

@@ -2,13 +2,13 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-mulberry_quick_bets = "64Gkr29K1xh9WuKDTLVpHSGi5hqKrFoZDuSvAmJZxHgD"
+mulberry_quick_bets = "4D119wzxMd8tCzN1kZ9atxkmjiAQvqVw4N9aLtkSrSej"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-# cluster = "Localnet"
+#  cluster = "Localnet"
 cluster = "mainnet"
 wallet = "/root/.config/solana/id.json"
 
