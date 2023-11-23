@@ -27,8 +27,6 @@ pub struct GlobalState {
     // time in seconds to how long the betting phase will last
     pub betting_time: u64,
 
-    pub betting_currency: Pubkey,
-
     // storing the latest 5 games, including the current active game.
     pub game_records: [GameRecord; 5],
 
@@ -145,6 +143,29 @@ impl Game {
         }
     }
 
+    pub fn calculate_winning_amount(&self, amount: u64, side: u8) -> u64 {
+        let total_pool_size = self.sol_bet_size + self.eth_bet_size;
+        let total_sol_bets = self.sol_bet_size;
+        let total_eth_bets = self.eth_bet_size;
+        let game_winner = self.get_winner();
+        if side != game_winner && game_winner != 2 {
+            return 0;
+        } else if game_winner == 2 {
+            return amount;
+        }
+        if side == game_winner && side == 0 {
+            // this means the user bet on sol, and sol won
+            let user_pool_share = amount as f64 / total_sol_bets as f64;
+            (total_pool_size as f64 * user_pool_share) as u64
+        } else if side == game_winner && side == 1 {
+            // this means the user bet on eth, and eth won
+            let user_pool_share = amount as f64 / total_eth_bets as f64;
+            (total_pool_size as f64 * user_pool_share) as u64
+        } else {
+            0
+        }
+    }
+
     pub fn betting_active(&self, duration: u64) -> Result<bool> {
         let current_time = Clock::get()?.unix_timestamp as u64;
         if current_time > self.betting_start + duration {
@@ -153,16 +174,10 @@ impl Game {
         Ok(true)
     }
 
-    pub fn add_user_bet(
-        &mut self,
-        user_address: Pubkey,
-        owner: Pubkey,
-        amount: u64,
-        side: u8,
-    ) -> Result<u64> {
+    pub fn add_user_bet(&mut self, owner: Pubkey, amount: u64, side: u8) -> Result<u64> {
         // look if they have a bet on there already
         for user_bet_slot in self.user_bets.iter_mut() {
-            if user_bet_slot.user_key == user_address {
+            if user_bet_slot.owner == owner {
                 if user_bet_slot.side != side {
                     return Err(QuickBetsErrors::AlreadyBet.into());
                 }
@@ -172,30 +187,29 @@ impl Game {
         }
         // User got no bets, look for empty slot
         for user_bet_slot in self.user_bets.iter_mut() {
-            if user_bet_slot.user_key == Pubkey::default() {
-                user_bet_slot.user_key = user_address;
+            if user_bet_slot.owner == Pubkey::default() {
+                user_bet_slot.owner = owner;
                 user_bet_slot.amount = amount;
                 user_bet_slot.claimed = false;
                 user_bet_slot.side = side;
-                user_bet_slot.owner = owner;
                 return Ok(user_bet_slot.amount);
             }
         }
         Err(QuickBetsErrors::NoSpaceLeft.into())
     }
 
-    pub fn get_user_bet(&self, user_address: Pubkey) -> Option<UserBet> {
+    pub fn get_user_bet(&self, owner: Pubkey) -> Option<UserBet> {
         for user_bet_slot in self.user_bets.iter() {
-            if user_bet_slot.user_key == user_address {
+            if user_bet_slot.owner == owner {
                 return Some(user_bet_slot.clone());
             }
         }
         None
     }
 
-    pub fn mark_bet_claimed(&mut self, user_address: Pubkey) -> Result<()> {
+    pub fn mark_bet_claimed(&mut self, owner: Pubkey) -> Result<()> {
         for user_bet_slot in self.user_bets.iter_mut() {
-            if user_bet_slot.user_key == user_address {
+            if user_bet_slot.owner == owner {
                 user_bet_slot.claimed = true;
                 return Ok(());
             }
@@ -208,7 +222,7 @@ impl Game {
 
         for user_bet_slot in self.user_bets.iter() {
             if !user_bet_slot.claimed
-                && user_bet_slot.user_key != Pubkey::default()
+                && user_bet_slot.owner != Pubkey::default()
                 && user_bet_slot.side == winning_side
             {
                 return false;
@@ -238,7 +252,6 @@ impl Game {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
 pub struct UserBet {
-    pub user_key: Pubkey,
     pub amount: u64,
     pub claimed: bool,
     pub side: u8,
@@ -287,6 +300,7 @@ impl User {
     }
 
     pub fn add_bet_record(&mut self, bet_size: u64, win: bool) {
+        msg!("adding bet record: {}, {}", bet_size, win);
         self.last_game_bet_size = bet_size;
         if win {
             self.current_win_streak += 1;
@@ -296,7 +310,7 @@ impl User {
                 || self.current_win_streak == 7
                 || self.current_win_streak > 7
             {
-                if self.last_game_bet_size >= (0.25 * 1e6) as u64 && bet_size >= (0.25 * 1e6) as u64
+                if self.last_game_bet_size >= (0.25 * 1e9) as u64 && bet_size >= (0.25 * 1e9) as u64
                 {
                     self.total_points += 2;
                 } else {
@@ -311,7 +325,7 @@ impl User {
                 || self.current_lose_streak == 7
                 || self.current_lose_streak > 7
             {
-                if self.last_game_bet_size >= (0.25 * 1e6) as u64 && bet_size >= (0.25 * 1e6) as u64
+                if self.last_game_bet_size >= (0.25 * 1e9) as u64 && bet_size >= (0.25 * 1e9) as u64
                 {
                     self.total_points += 2;
                 } else {

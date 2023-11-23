@@ -9,7 +9,7 @@ mod quick_bets_errors;
 mod state;
 mod utils;
 
-declare_id!("4D119wzxMd8tCzN1kZ9atxkmjiAQvqVw4N9aLtkSrSej");
+declare_id!("6gbfSJq7YN6To7TqYhHpZRh22P33MTtc47EAUr9fEYKM");
 
 #[program]
 mod mulberry_quick_bets {
@@ -102,12 +102,48 @@ mod mulberry_quick_bets {
         handle_close_user_spin_account(ctx)
     }
 
-    pub fn deduct_balance(ctx: Context<DeductBalance>, price: u8, item_id: u8) -> Result<()> {
-        handle_deduct_balance(ctx, price, item_id)
+    pub fn buy_item(
+        ctx: Context<BuyItem>,
+        edition: u8,
+        item_id: u8,
+        discord_id: u64,
+    ) -> Result<()> {
+        handle_buy_item(ctx, edition, item_id, discord_id)
     }
-    
-    pub fn add_balance( ctx: Context<AddBalance>, amount : u16) -> Result<()> {
+
+    pub fn add_balance(ctx: Context<AddBalance>, amount: u16) -> Result<()> {
         handle_add_balance(ctx, amount)
+    }
+
+    pub fn list_item(
+        ctx: Context<ListItem>,
+        item_id: u8,
+        price: u8,
+        total_quantity: u8,
+        quantity_left: u8,
+        edition: u8,
+    ) -> Result<()> {
+        handle_list_item(ctx, item_id, price, total_quantity, quantity_left, edition)
+    }
+
+    pub fn change_price(ctx: Context<ChangePrice>, new_price: u8, edition: u8, item_id: u8) -> Result<()> {
+        handle_change_price(ctx, new_price, edition, item_id)
+    }
+
+    pub fn init_airdrop(ctx: Context<InitAirdrop>) -> Result<()> {
+        handle_init_airdrop(ctx)
+    }
+
+    pub fn reset_airdrop(ctx: Context<ResetAirdrop>, amount : u64) -> Result<()> {
+        handle_reset_airdrop(ctx, amount)
+    }
+
+    pub fn create_airdrop_account(ctx: Context<CreateAirdropAccount>, discord_id: u64) -> Result<()> {
+        handle_create_airdrop_account(ctx, discord_id)
+    }
+
+    pub fn claim_airdrop(ctx: Context<ClaimAirdrop>, discord_id: u64) -> Result<()> {
+        handle_claim_reward(ctx, discord_id)
     }
 }
 

@@ -14,23 +14,21 @@ pub fn handle_initialize(ctx: Context<Initialize>) -> Result<()> {
     // initial fee of 500(5%)
     global_state.betting_fees = 500;
     // max bet amount of 0.5 sol
-    global_state.max_house_match = (0.5 * 1e6_f64) as u64;
+    global_state.max_house_match = (0.5 * 1e9_f64) as u64;
 
     global_state.paused = false;
 
     global_state.house_wallet = ctx.accounts.house_wallet.key();
 
-    global_state.anticipation_time = 60;
+    global_state.anticipation_time = 30;
 
-    global_state.betting_time = 60;
+    global_state.betting_time = 30;
 
-    global_state.betting_currency = ctx.accounts.betting_currency.key();
+    global_state.max_user_bet = 1e9 as u64;
 
-    global_state.max_user_bet = 50 * 1_000_000;
+    global_state.max_house_bet_size = 2 * 1e9 as u64;
 
-    global_state.max_house_bet_size = 100 * 1_000_000;
-
-    global_state.min_multiplier = 1.5;
+    global_state.min_multiplier = 1.75;
 
     Ok(())
 }

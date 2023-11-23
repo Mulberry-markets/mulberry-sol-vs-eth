@@ -28,12 +28,15 @@ pub fn handle_claim_win(ctx: Context<ClaimWin>) -> Result<()> {
         .user_account
         .add_bet_record(user_bet_size, user_bet.side == game.get_winner());
 
+
+    game.mark_bet_claimed(ctx.accounts.owner.key())?;
+
     if game.get_winner() != 2 && user_bet.side != game.get_winner() {
         msg!("You are not on the winning side");
-        return Err(QuickBetsErrors::NotOnWinningSide.into());
+
+        return Ok(());
     }
 
-    game.mark_bet_claimed(ctx.accounts.receiver.key())?;
 
     if game.get_winner() == 2 {
         msg!("Draw, returning your bet");

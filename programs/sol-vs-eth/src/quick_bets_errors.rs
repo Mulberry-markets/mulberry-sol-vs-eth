@@ -53,5 +53,9 @@ pub enum QuickBetsErrors {
     #[msg("Reward not claimed yet")]
     RewardNotClaimed,
     #[msg("Insufficient balance")]
-    InsufficientBalance
+    InsufficientBalance,
+    #[msg("Sold out")]
+    SoldOut,
+    #[msg("Reward Already Claimed")]
+    RewardAlreadyClaimed,
 }

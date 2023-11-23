@@ -1,12 +1,13 @@
+use std::str::FromStr;
+
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
-use crate::consts::GLOBAL_AUTH_SEED;
+use crate::consts::USER_ACCOUNT_SEED;
+use crate::consts::{GLOBAL_AUTH_SEED, GLOBAL_STATE_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{Game, GlobalAuth, GlobalState, User};
 use crate::utils::transfer_tokens;
-use std::str::FromStr;
-use crate::consts::USER_ACCOUNT_SEED;
 
 pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Result<()> {
     let game = &mut ctx.accounts.game;
@@ -82,8 +83,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
         game.eth_bet_size += bet_size;
     }
     msg!("user bet size : {}", bet_size);
-    let total_user_bet =
-        game.add_user_bet(payer.key(), ctx.accounts.signer.key(), bet_size, side)?;
+    let total_user_bet = game.add_user_bet(ctx.accounts.signer.key(), bet_size, side)?;
     msg!("total user bet : {}", total_user_bet);
     ctx.accounts.user_account.add_volume(bet_size);
     require!(
@@ -114,11 +114,13 @@ pub struct PlaceBet<'info> {
     #[account(mut, constraint = global_state.house_wallet == house_wallet.key())]
     pub house_wallet: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, address = Pubkey::from_str("5bhssigFDYdR4MtCzD27mY69odyqFWPsWpxedYzJqDuJ").unwrap())]
+    #[account(mut, address = Pubkey::from_str("3kg54CAWcdq2gPCGjQ534brznAQpWHpJP1mpCA3DavZT").unwrap())]
     pub fees_wallet: Box<Account<'info, TokenAccount>>,
     #[account(mut, seeds = [USER_ACCOUNT_SEED, signer.key.as_ref()], bump)]
     pub user_account: Account<'info, User>,
-    pub global_state: Box<Account<'info, GlobalState>>,
+
+    #[account(seeds = [GLOBAL_STATE_SEED], bump)]
+    pub global_state: Account<'info, GlobalState>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
 }

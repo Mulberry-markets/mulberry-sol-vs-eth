@@ -44,7 +44,6 @@ pub struct StartGame<'info> {
     #[account(mut, seeds = [GLOBAL_STATE_SEED], bump)]
     pub global_state: Box<Account<'info, GlobalState>>,
 
-    #[account(constraint = global_state.betting_currency == betting_token.key())]
     pub betting_token: Box<Account<'info, Mint>>,
 
     #[account(init, payer = signer, token::mint = betting_token, token::authority = global_auth_pda)]
