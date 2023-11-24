@@ -20,7 +20,9 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
     msg!("anticipation start : {}", game.anticipating_start);
-    msg!("current time: {} ", Clock::get()?.unix_timestamp);
+    msg!("End time: {} ", Clock::get()?.unix_timestamp);
+    msg!("Sol price: {}", sol_price);
+    msg!("Eth price: {}", eth_price);
 
     if game.anticipating_start + global_state.anticipation_time
         > Clock::get()?.unix_timestamp as u64 + MARGIN_OF_ERROR

@@ -156,11 +156,11 @@ impl Game {
         if side == game_winner && side == 0 {
             // this means the user bet on sol, and sol won
             let user_pool_share = amount as f64 / total_sol_bets as f64;
-            (total_pool_size as f64 * user_pool_share) as u64
+            (total_pool_size as f64 * user_pool_share).floor() as u64
         } else if side == game_winner && side == 1 {
             // this means the user bet on eth, and eth won
             let user_pool_share = amount as f64 / total_eth_bets as f64;
-            (total_pool_size as f64 * user_pool_share) as u64
+            (total_pool_size as f64 * user_pool_share).floor() as u64
         } else {
             0
         }
