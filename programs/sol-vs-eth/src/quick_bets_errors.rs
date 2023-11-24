@@ -58,4 +58,6 @@ pub enum QuickBetsErrors {
     SoldOut,
     #[msg("Reward Already Claimed")]
     RewardAlreadyClaimed,
+    #[msg("Limit Reached, You can't buy more of this item")]
+    LimitReached
 }

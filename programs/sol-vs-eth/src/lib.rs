@@ -9,7 +9,7 @@ mod quick_bets_errors;
 mod state;
 mod utils;
 
-declare_id!("6gbfSJq7YN6To7TqYhHpZRh22P33MTtc47EAUr9fEYKM");
+declare_id!("FoQmgELX7TbWBkVUsDkQW8LQ8V298dcMewd1pErZehzz");
 
 #[program]
 mod mulberry_quick_bets {
@@ -86,21 +86,21 @@ mod mulberry_quick_bets {
         handle_withdraw_funds(ctx, amount)
     }
 
-    pub fn use_spin(ctx: Context<UseSpin>, result: u16) -> Result<()> {
-        handle_use_spin(ctx, result)
-    }
+    // pub fn use_spin(ctx: Context<UseSpin>, result: u16) -> Result<()> {
+    //     handle_use_spin(ctx, result)
+    // }
 
-    pub fn claim_spin_reward(ctx: Context<ClaimSpinReward>) -> Result<()> {
-        handle_claim_spin_reward(ctx)
-    }
+    // pub fn claim_spin_reward(ctx: Context<ClaimSpinReward>) -> Result<()> {
+    //     handle_claim_spin_reward(ctx)
+    // }
 
     pub fn create_user_spin_account(ctx: Context<CreateUserSpinAccount>) -> Result<()> {
         handle_create_user_spin_account(ctx)
     }
 
-    pub fn close_user_spin_account(ctx: Context<CloseUserSpinAccount>) -> Result<()> {
-        handle_close_user_spin_account(ctx)
-    }
+    // pub fn close_user_spin_account(ctx: Context<CloseUserSpinAccount>) -> Result<()> {
+    //     handle_close_user_spin_account(ctx)
+    // }
 
     pub fn buy_item(
         ctx: Context<BuyItem>,
@@ -122,8 +122,9 @@ mod mulberry_quick_bets {
         total_quantity: u8,
         quantity_left: u8,
         edition: u8,
+        limit_per_user: u8
     ) -> Result<()> {
-        handle_list_item(ctx, item_id, price, total_quantity, quantity_left, edition)
+        handle_list_item(ctx, item_id, price, total_quantity, quantity_left, edition, limit_per_user)
     }
 
     pub fn change_price(ctx: Context<ChangePrice>, new_price: u8, edition: u8, item_id: u8) -> Result<()> {
@@ -144,6 +145,11 @@ mod mulberry_quick_bets {
 
     pub fn claim_airdrop(ctx: Context<ClaimAirdrop>, discord_id: u64) -> Result<()> {
         handle_claim_reward(ctx, discord_id)
+    }
+
+    pub fn create_item_account(ctx: Context<CreateItemAccount>, item_id: u8,
+                               edition: u8,) -> Result<()> {
+        handle_create_item_account(ctx, item_id, edition)
     }
 }
 

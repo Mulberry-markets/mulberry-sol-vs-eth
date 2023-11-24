@@ -19,10 +19,7 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
     require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
-    msg!("anticipation start : {}", game.anticipating_start);
-    msg!("End time: {} ", Clock::get()?.unix_timestamp);
-    msg!("Sol price: {}", sol_price);
-    msg!("Eth price: {}", eth_price);
+
 
     if game.anticipating_start + global_state.anticipation_time
         > Clock::get()?.unix_timestamp as u64 + MARGIN_OF_ERROR
@@ -41,6 +38,10 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     let sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
     let eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
 
+    msg!("anticipation start : {}", game.anticipating_start);
+    msg!("End time: {} ", Clock::get()?.unix_timestamp);
+    msg!("Sol price: {}", sol_price);
+    msg!("Eth price: {}", eth_price);
     game.final_sol_price = sol_price;
     game.final_eth_price = eth_price;
     game.is_settled = true;
