@@ -151,6 +151,12 @@ mod mulberry_quick_bets {
                                edition: u8,) -> Result<()> {
         handle_create_item_account(ctx, item_id, edition)
     }
+
+    pub fn change_limit_per_user(ctx: Context<ChangeLimitPerUser>, limit_per_user: u8,
+                                 edition: u8,
+                                 item_id: u8,) -> Result<()> {
+        handle_change_limit_per_user(ctx, limit_per_user, edition, item_id)
+    }
 }
 
 #[derive(Accounts)]

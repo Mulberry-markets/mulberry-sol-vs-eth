@@ -15,11 +15,9 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     let game = &mut ctx.accounts.game;
     let global_state = &mut ctx.accounts.global_state;
 
-
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
 
     require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
-
 
     if game.anticipating_start + global_state.anticipation_time
         > Clock::get()?.unix_timestamp as u64 + MARGIN_OF_ERROR
@@ -35,8 +33,14 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
-    let sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
-    let eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
+    let mut sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
+    let mut eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
+    if game.anticipating_start + global_state.anticipation_time + 15
+        < Clock::get()?.unix_timestamp as u64
+    {
+        sol_price = game.initial_sol_price;
+        eth_price = game.initial_eth_price;
+    }
 
     msg!("anticipation start : {}", game.anticipating_start);
     msg!("End time: {} ", Clock::get()?.unix_timestamp);
@@ -88,12 +92,10 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         ctx.accounts.player_account_7.to_account_info(),
     ];
 
-
     let mut total_payouts = 0;
     let mut amount_to_pay: HashMap<Pubkey, u64> = HashMap::new();
 
-
-    for  (i, account) in account_infos.iter().enumerate() {
+    for (i, account) in account_infos.iter().enumerate() {
         if account.key == ctx.accounts.signer.key {
             continue;
         }
@@ -107,29 +109,46 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
             continue;
         }
 
-        msg!("adding user record, amount: {}, side: {}", user_bet.amount, user_bet.side == game.get_winner());
+        msg!(
+            "adding user record, amount: {}, side: {}",
+            user_bet.amount,
+            user_bet.side == game.get_winner()
+        );
         match i {
             0 => {
-
-                ctx.accounts.player_user_account_1.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_1
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             1 => {
-                ctx.accounts.player_user_account_2.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_2
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             2 => {
-                ctx.accounts.player_user_account_3.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_3
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             3 => {
-                ctx.accounts.player_user_account_4.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_4
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             4 => {
-                ctx.accounts.player_user_account_5.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_5
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             5 => {
-                ctx.accounts.player_user_account_6.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_6
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             6 => {
-                ctx.accounts.player_user_account_7.add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
+                ctx.accounts
+                    .player_user_account_7
+                    .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             _ => {}
         }

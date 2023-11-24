@@ -37,7 +37,7 @@ pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
 
     require!(game.check_all_bets_claimed(), QuickBetsErrors::BetsNotClaimed);
 
-    require!(ctx.accounts.game_vault.amount == 0, QuickBetsErrors::VaultNotEmpty);
+    // require!(ctx.accounts.game_vault.amount == 0, QuickBetsErrors::VaultNotEmpty);
 
     let cpi_accounts = token::CloseAccount {
         account: ctx.accounts.game_vault.to_account_info(),

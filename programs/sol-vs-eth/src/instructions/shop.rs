@@ -89,6 +89,28 @@ pub fn handle_create_item_account(
     Ok(())
 }
 
+pub fn handle_change_limit_per_user(
+    ctx: Context<ChangeLimitPerUser>,
+    limit_per_user: u8,
+    edition: u8,
+    item_id: u8,
+) -> Result<()> {
+    if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
+        return Err(QuickBetsErrors::Unauthorized.into());
+    }
+    ctx.accounts.item.limit_per_user = limit_per_user;
+    Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction(limit_per_user: u8, edition: u8, item_id: u8)]
+pub struct ChangeLimitPerUser<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut, seeds = [&[item_id, edition]], bump)]
+    pub item: Account<'info, ShopItem>,
+}
+
 #[derive(Accounts)]
 pub struct AddBalance<'info> {
     #[account(mut)]
