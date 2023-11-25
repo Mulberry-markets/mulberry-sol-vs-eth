@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::consts::{ADMIN_WALLETS, USER_ACCOUNT_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
-use crate::state::User;
+use crate::state::{User, UserItemAccount};
 
 pub fn handle_buy_item(
     ctx: Context<BuyItem>,
@@ -15,14 +15,14 @@ pub fn handle_buy_item(
         return Err(QuickBetsErrors::InsufficientBalance.into());
     }
 
-
     if item.quantity_left == 0 {
         return Err(QuickBetsErrors::SoldOut.into());
     }
-    if ctx.accounts.user_item_account.total_bought >= item.limit_per_user && item.limit_per_user != 0 {
+    if ctx.accounts.user_item_account.total_bought >= item.limit_per_user
+        && item.limit_per_user != 0
+    {
         return Err(QuickBetsErrors::LimitReached.into());
     }
-
 
     ctx.accounts.user_item_account.total_bought += 1;
     ctx.accounts.user_item_account.total_spent += item.price;
@@ -45,7 +45,7 @@ pub fn handle_list_item(
     total_quantity: u8,
     quantity_left: u8,
     edition: u8,
-    limit_per_user: u8
+    limit_per_user: u8,
 ) -> Result<()> {
     if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
         return Err(QuickBetsErrors::Unauthorized.into());
@@ -55,14 +55,8 @@ pub fn handle_list_item(
     ctx.accounts.item.total_quantity = total_quantity;
     ctx.accounts.item.quantity_left = quantity_left;
     ctx.accounts.item.edition = edition;
-    ctx.accounts.item.limit_per_user= limit_per_user;
+    ctx.accounts.item.limit_per_user = limit_per_user;
     Ok(())
-}
-
-pub fn handle_add_balance(ctx: Context<AddBalance>, amount: u16) -> Result<()> {
-    return Ok(());
-    // ctx.accounts.user_account.total_points += amount;
-    // Ok(())
 }
 
 pub fn handle_change_price(
@@ -89,18 +83,8 @@ pub fn handle_create_item_account(
     Ok(())
 }
 
-pub fn handle_change_limit_per_user(
-    ctx: Context<ChangeLimitPerUser>,
-    limit_per_user: u8,
-    edition: u8,
-    item_id: u8,
-) -> Result<()> {
-    if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
-        return Err(QuickBetsErrors::Unauthorized.into());
-    }
-    ctx.accounts.item.limit_per_user = limit_per_user;
-    Ok(())
-}
+
+
 
 #[derive(Accounts)]
 #[instruction(limit_per_user: u8, edition: u8, item_id: u8)]
@@ -160,6 +144,8 @@ pub struct CreateItemAccount<'info> {
     pub system_program: Program<'info, System>,
 }
 
+
+
 #[account]
 pub struct ShopItem {
     item_id: u8,
@@ -170,8 +156,5 @@ pub struct ShopItem {
     limit_per_user: u8,
 }
 
-#[account]
-pub struct UserItemAccount {
-    pub total_bought: u8,
-    pub total_spent: u8,
-}
+
+

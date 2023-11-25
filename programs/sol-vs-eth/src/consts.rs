@@ -3,6 +3,8 @@ pub const GLOBAL_STATE_SEED : &[u8] = b"global-state";
 
 pub const USER_ACCOUNT_SEED: &[u8] = b"user_account";
 
+pub const RAFFLE_ITEM_SEED: &[u8] = b"raffle-item";
+
 pub const ETH_ORACLE: &str = "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB";
 pub const SOL_ORACLE: &str = "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG";
 

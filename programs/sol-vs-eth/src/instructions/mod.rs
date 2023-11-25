@@ -11,6 +11,7 @@ pub mod withdraw_funds;
 pub mod spin;
 pub mod shop;
 pub mod mlist_rewards;
+pub mod raffle;
 
 
 pub use initialize::*;
@@ -26,3 +27,4 @@ pub use withdraw_funds::*;
 pub use spin::*;
 pub use shop::*;
 pub use mlist_rewards::*;
+pub use raffle::*;

@@ -86,21 +86,9 @@ mod mulberry_quick_bets {
         handle_withdraw_funds(ctx, amount)
     }
 
-    // pub fn use_spin(ctx: Context<UseSpin>, result: u16) -> Result<()> {
-    //     handle_use_spin(ctx, result)
-    // }
-
-    // pub fn claim_spin_reward(ctx: Context<ClaimSpinReward>) -> Result<()> {
-    //     handle_claim_spin_reward(ctx)
-    // }
-
     pub fn create_user_spin_account(ctx: Context<CreateUserSpinAccount>) -> Result<()> {
         handle_create_user_spin_account(ctx)
     }
-
-    // pub fn close_user_spin_account(ctx: Context<CloseUserSpinAccount>) -> Result<()> {
-    //     handle_close_user_spin_account(ctx)
-    // }
 
     pub fn buy_item(
         ctx: Context<BuyItem>,
@@ -111,10 +99,6 @@ mod mulberry_quick_bets {
         handle_buy_item(ctx, edition, item_id, discord_id)
     }
 
-    pub fn add_balance(ctx: Context<AddBalance>, amount: u16) -> Result<()> {
-        handle_add_balance(ctx, amount)
-    }
-
     pub fn list_item(
         ctx: Context<ListItem>,
         item_id: u8,
@@ -122,24 +106,32 @@ mod mulberry_quick_bets {
         total_quantity: u8,
         quantity_left: u8,
         edition: u8,
-        limit_per_user: u8
+        limit_per_user: u8,
     ) -> Result<()> {
-        handle_list_item(ctx, item_id, price, total_quantity, quantity_left, edition, limit_per_user)
+        handle_list_item(
+            ctx,
+            item_id,
+            price,
+            total_quantity,
+            quantity_left,
+            edition,
+            limit_per_user,
+        )
     }
 
-    pub fn change_price(ctx: Context<ChangePrice>, new_price: u8, edition: u8, item_id: u8) -> Result<()> {
-        handle_change_price(ctx, new_price, edition, item_id)
-    }
 
     pub fn init_airdrop(ctx: Context<InitAirdrop>) -> Result<()> {
         handle_init_airdrop(ctx)
     }
 
-    pub fn reset_airdrop(ctx: Context<ResetAirdrop>, amount : u64) -> Result<()> {
+    pub fn reset_airdrop(ctx: Context<ResetAirdrop>, amount: u64) -> Result<()> {
         handle_reset_airdrop(ctx, amount)
     }
 
-    pub fn create_airdrop_account(ctx: Context<CreateAirdropAccount>, discord_id: u64) -> Result<()> {
+    pub fn create_airdrop_account(
+        ctx: Context<CreateAirdropAccount>,
+        discord_id: u64,
+    ) -> Result<()> {
         handle_create_airdrop_account(ctx, discord_id)
     }
 
@@ -147,16 +139,56 @@ mod mulberry_quick_bets {
         handle_claim_reward(ctx, discord_id)
     }
 
-    pub fn create_item_account(ctx: Context<CreateItemAccount>, item_id: u8,
-                               edition: u8,) -> Result<()> {
+    pub fn create_item_account(
+        ctx: Context<CreateItemAccount>,
+        item_id: u8,
+        edition: u8,
+    ) -> Result<()> {
         handle_create_item_account(ctx, item_id, edition)
     }
 
-    pub fn change_limit_per_user(ctx: Context<ChangeLimitPerUser>, limit_per_user: u8,
-                                 edition: u8,
-                                 item_id: u8,) -> Result<()> {
-        handle_change_limit_per_user(ctx, limit_per_user, edition, item_id)
+    pub fn create_raffle(
+        ctx: Context<CreateRaffleItem>,
+        raffle_id: u8,
+        price: u16,
+        total_quantity: u16,
+        limit_per_user: u16,
+    ) -> Result<()> {
+        handle_create_raffle(
+            ctx,
+            raffle_id,
+            price,
+            total_quantity,
+            limit_per_user,
+        )
     }
+
+    pub fn buy_raffle_tickets(
+        ctx: Context<BuyRaffleTickets>,
+        raffle_id: u8,
+        discord_id: u64,
+        tickets_amount: u16,
+    ) -> Result<()> {
+        handle_buy_raffle_tickets(
+            ctx,
+            raffle_id,
+            discord_id,
+            tickets_amount,
+        )
+    }
+
+    pub fn create_raffle_account(
+        ctx: Context<CreateRaffleAccount>,
+        raffle_id: u8,
+        discord_id: u64,
+    ) -> Result<()> {
+        handle_create_raffle_account(
+            ctx,
+            raffle_id,
+            discord_id,
+        )
+    }
+
 }
 
 #[derive(Accounts)]

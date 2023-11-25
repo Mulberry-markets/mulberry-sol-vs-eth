@@ -91,6 +91,11 @@ pub enum GameStatus {
 pub struct GlobalAuth {}
 
 #[account]
+pub struct UserItemAccount {
+    pub total_bought: u8,
+    pub total_spent: u8,
+}
+#[account]
 #[derive(Default)]
 pub struct Game {
     // initial eth and sol prices, from pyth
