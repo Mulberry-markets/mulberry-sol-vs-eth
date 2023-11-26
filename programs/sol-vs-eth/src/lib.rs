@@ -9,7 +9,7 @@ mod quick_bets_errors;
 mod state;
 mod utils;
 
-declare_id!("FoQmgELX7TbWBkVUsDkQW8LQ8V298dcMewd1pErZehzz");
+declare_id!("6gbfSJq7YN6To7TqYhHpZRh22P33MTtc47EAUr9fEYKM");
 
 #[program]
 mod mulberry_quick_bets {
@@ -119,7 +119,6 @@ mod mulberry_quick_bets {
         )
     }
 
-
     pub fn init_airdrop(ctx: Context<InitAirdrop>) -> Result<()> {
         handle_init_airdrop(ctx)
     }
@@ -154,13 +153,7 @@ mod mulberry_quick_bets {
         total_quantity: u16,
         limit_per_user: u16,
     ) -> Result<()> {
-        handle_create_raffle(
-            ctx,
-            raffle_id,
-            price,
-            total_quantity,
-            limit_per_user,
-        )
+        handle_create_raffle(ctx, raffle_id, price, total_quantity, limit_per_user)
     }
 
     pub fn buy_raffle_tickets(
@@ -169,26 +162,21 @@ mod mulberry_quick_bets {
         discord_id: u64,
         tickets_amount: u16,
     ) -> Result<()> {
-        handle_buy_raffle_tickets(
-            ctx,
-            raffle_id,
-            discord_id,
-            tickets_amount,
-        )
+        handle_buy_raffle_tickets(ctx, raffle_id, discord_id, tickets_amount)
     }
 
     pub fn create_raffle_account(
         ctx: Context<CreateRaffleAccount>,
-        raffle_id: u8,
         discord_id: u64,
     ) -> Result<()> {
-        handle_create_raffle_account(
-            ctx,
-            raffle_id,
-            discord_id,
-        )
+        handle_create_raffle_account(ctx, discord_id)
     }
 
+    pub fn close_raffle(
+        ctx: Context<CloseRaffle>,
+    ) -> Result<()> {
+        handle_close_raffle(ctx)
+    }
 }
 
 #[derive(Accounts)]

@@ -1,8 +1,6 @@
-use std::mem::size_of;
-
 use anchor_lang::prelude::*;
 
-use crate::consts::{ADMIN_WALLETS, RAFFLE_ITEM_SEED, USER_ACCOUNT_SEED};
+use crate::consts::{ADMIN_WALLETS, USER_ACCOUNT_SEED};
 use crate::quick_bets_errors::QuickBetsErrors;
 use crate::state::{User, UserItemAccount};
 
@@ -22,6 +20,7 @@ pub fn handle_create_raffle(
     item.item_id = raffle_id as u16;
     item.price = price;
     item.total_quantity = total_quantity;
+    item.quantity_left = total_quantity;
     item.limit_per_user = limit_per_user;
     Ok(())
 }
@@ -33,7 +32,7 @@ pub fn handle_buy_raffle_tickets(
     tickets_amount: u16,
 ) -> Result<()> {
     let item = &mut ctx.accounts.item.load_mut()?;
-    if ctx.accounts.user_account.total_points < item.price as u16 * tickets_amount as u16 {
+    if ctx.accounts.user_account.total_points < item.price * tickets_amount {
         return Err(QuickBetsErrors::InsufficientBalance.into());
     }
 
@@ -50,7 +49,7 @@ pub fn handle_buy_raffle_tickets(
     ctx.accounts.user_item_account.total_spent += (item.price * tickets_amount) as u8;
     item.quantity_left -= tickets_amount;
     item.add_tickets(tickets_amount as u64, discord_id);
-    ctx.accounts.user_account.total_points -= item.price as u16 * tickets_amount as u16;
+    ctx.accounts.user_account.total_points -= item.price * tickets_amount;
 
     msg!(
         "discord_id: {}, item_id: {}, price: {}",
@@ -63,13 +62,31 @@ pub fn handle_buy_raffle_tickets(
 
 pub fn handle_create_raffle_account(
     ctx: Context<CreateRaffleAccount>,
-    raffle_id: u8,
     discord_id: u64,
 ) -> Result<()> {
     let user_item_account = &mut ctx.accounts.user_item_account;
     user_item_account.total_bought = 0;
     user_item_account.total_spent = 0;
     Ok(())
+}
+
+pub fn handle_close_raffle(
+    ctx : Context<CloseRaffle>,
+) -> Result<()> {
+    let item = &mut ctx.accounts.item.load_mut()?;
+    for i in 0..item.entrants.len() {
+        msg!("discord_id: {}, tickets_bought: {}", item.entrants[i].discord_id, item.entrants[i].tickets_bought);
+    }
+
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct CloseRaffle<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut, close = admin)]
+    pub item: AccountLoader<'info, RaffleItem>,
 }
 
 #[derive(Accounts)]
@@ -94,13 +111,13 @@ pub struct CreateRaffleItem<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(raffle_id: u8, discord_id : u64)]
+#[instruction( discord_id : u64)]
 pub struct CreateRaffleAccount<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut)]
     pub item: AccountLoader<'info, RaffleItem>,
-    #[account(init, seeds = [discord_id.to_le_bytes().as_slice(), item.key().as_ref()], bump , payer = signer, space = 2 + 2 + 8)]
+    #[account(init, seeds = [discord_id.to_le_bytes().as_slice(), item.key().as_ref()], bump , payer = signer, space = 6 + 8)]
     pub user_item_account: Account<'info, UserItemAccount>,
     pub system_program: Program<'info, System>,
 }
