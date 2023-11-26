@@ -9,7 +9,7 @@ mod quick_bets_errors;
 mod state;
 mod utils;
 
-declare_id!("FoQmgELX7TbWBkVUsDkQW8LQ8V298dcMewd1pErZehzz");
+declare_id!("6gbfSJq7YN6To7TqYhHpZRh22P33MTtc47EAUr9fEYKM");
 
 #[program]
 mod mulberry_quick_bets {
@@ -157,6 +157,11 @@ mod mulberry_quick_bets {
                                  item_id: u8,) -> Result<()> {
         handle_change_limit_per_user(ctx, limit_per_user, edition, item_id)
     }
+
+    pub fn restock(ctx: Context<RestockItems>,amount: u8, edition: u8, item_id: u8) -> Result<()> {
+        handle_restock(ctx, amount, edition, item_id)
+    }
+
 }
 
 #[derive(Accounts)]
