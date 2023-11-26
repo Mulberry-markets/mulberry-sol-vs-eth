@@ -165,18 +165,18 @@ mod mulberry_quick_bets {
         handle_buy_raffle_tickets(ctx, raffle_id, discord_id, tickets_amount)
     }
 
-    pub fn create_raffle_account(
-        ctx: Context<CreateRaffleAccount>,
-        discord_id: u64,
-    ) -> Result<()> {
+    pub fn create_raffle_account(ctx: Context<CreateRaffleAccount>, discord_id: u64) -> Result<()> {
         handle_create_raffle_account(ctx, discord_id)
     }
 
-    pub fn close_raffle(
-        ctx: Context<CloseRaffle>,
-    ) -> Result<()> {
+    pub fn close_raffle(ctx: Context<CloseRaffle>) -> Result<()> {
         handle_close_raffle(ctx)
     }
+
+    pub fn restock(ctx: Context<RestockItems>, amount: u8, edition: u8, item_id: u8) -> Result<()> {
+        handle_restock(ctx, amount, edition, item_id)
+    }
+
 }
 
 #[derive(Accounts)]

@@ -86,9 +86,33 @@ pub fn handle_create_item_account(
 
 
 
+pub fn handle_restock(
+    ctx: Context<RestockItems>,
+    amount: u8,
+    edition: u8,
+    item_id: u8,
+) -> Result<()> {
+    if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
+        return Err(QuickBetsErrors::Unauthorized.into());
+    }
+    ctx.accounts.item.quantity_left += amount;
+    ctx.accounts.item.total_quantity += amount;
+    Ok(())
+}
+
 #[derive(Accounts)]
 #[instruction(limit_per_user: u8, edition: u8, item_id: u8)]
 pub struct ChangeLimitPerUser<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut, seeds = [&[item_id, edition]], bump)]
+    pub item: Account<'info, ShopItem>,
+}
+
+
+#[derive(Accounts)]
+#[instruction(amount: u8, edition: u8, item_id: u8)]
+pub struct RestockItems<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
     #[account(mut, seeds = [&[item_id, edition]], bump)]
