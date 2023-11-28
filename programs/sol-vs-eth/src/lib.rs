@@ -39,7 +39,7 @@ mod mulberry_quick_bets {
         handle_claim_win(ctx)
     }
 
-    #[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments)]
     pub fn change_global_state(
         ctx: Context<ChangeGlobalState>,
         betting_fees: u64,
@@ -173,8 +173,9 @@ mod mulberry_quick_bets {
         handle_close_raffle(ctx)
     }
 
-    pub fn restock(ctx: Context<RestockItems>, amount: u8, edition: u8, item_id: u8) -> Result<()> {
-        handle_restock(ctx, amount, edition, item_id)
+    pub fn restock(ctx: Context<RestockItems>, amount: u8,price: u8,
+                   limit_per_user: u8, edition: u8, item_id: u8) -> Result<()> {
+        handle_restock(ctx, amount,price, limit_per_user, edition, item_id)
     }
 
 }

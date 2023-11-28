@@ -52,10 +52,11 @@ pub fn handle_buy_raffle_tickets(
     ctx.accounts.user_account.total_points -= item.price * tickets_amount;
 
     msg!(
-        "discord_id: {}, item_id: {}, price: {}",
+        "discord_id: {}, raffle_id: {}, price: {}, amount: {}",
         discord_id,
         raffle_id,
-        item.price
+        item.price,
+        tickets_amount
     );
     Ok(())
 }

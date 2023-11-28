@@ -83,12 +83,11 @@ pub fn handle_create_item_account(
     Ok(())
 }
 
-
-
-
 pub fn handle_restock(
     ctx: Context<RestockItems>,
     amount: u8,
+    price: u8,
+    limit_per_user: u8,
     edition: u8,
     item_id: u8,
 ) -> Result<()> {
@@ -97,6 +96,8 @@ pub fn handle_restock(
     }
     ctx.accounts.item.quantity_left += amount;
     ctx.accounts.item.total_quantity += amount;
+    ctx.accounts.item.price = price;
+    ctx.accounts.item.limit_per_user = limit_per_user;
     Ok(())
 }
 
@@ -109,9 +110,12 @@ pub struct ChangeLimitPerUser<'info> {
     pub item: Account<'info, ShopItem>,
 }
 
-
 #[derive(Accounts)]
-#[instruction(amount: u8, edition: u8, item_id: u8)]
+#[instruction(amount: u8,
+price: u8,
+limit_per_user: u8,
+edition: u8,
+item_id: u8)]
 pub struct RestockItems<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -168,8 +172,6 @@ pub struct CreateItemAccount<'info> {
     pub system_program: Program<'info, System>,
 }
 
-
-
 #[account]
 pub struct ShopItem {
     item_id: u8,
@@ -179,6 +181,3 @@ pub struct ShopItem {
     edition: u8,
     limit_per_user: u8,
 }
-
-
-
