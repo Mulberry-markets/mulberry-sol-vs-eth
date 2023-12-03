@@ -33,16 +33,19 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         return Err(QuickBetsErrors::InvalidOracle.into());
     }
 
-    let mut sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
-    let mut eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
+    let mut sol_price = 0;
+    let mut eth_price = 0;
     if game.anticipating_start + global_state.anticipation_time + 15
         < Clock::get()?.unix_timestamp as u64
     {
+        msg!("game too took long to be resolved, refunding participants");
         sol_price = game.initial_sol_price;
         eth_price = game.initial_eth_price;
+    } else {
+        sol_price = get_price_from_pyth(ctx.accounts.sol_feed.clone())?;
+        eth_price = get_price_from_pyth(ctx.accounts.eth_feed.clone())?;
     }
 
-    msg!("anticipation start : {}", game.anticipating_start);
     msg!("End time: {} ", Clock::get()?.unix_timestamp);
     msg!("Sol price: {}", sol_price);
     msg!("Eth price: {}", eth_price);
@@ -50,6 +53,16 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     game.final_eth_price = eth_price;
     game.is_settled = true;
     game.anticipating_end = Clock::get()?.unix_timestamp as u64;
+    msg!(
+        "{}",
+        if game.get_winner() == 2 {
+            "DRAW, refunding all users"
+        } else if game.get_winner() == 0 {
+            "Sol Won"
+        } else {
+            "Eth Won"
+        }
+    );
 
     ctx.accounts
         .global_state
@@ -65,8 +78,6 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
     };
 
     let amount_owed_to_winners = game.get_amount_owed_to_winners(winners_multiplier);
-    msg!("Amount owed to winners: {}", amount_owed_to_winners);
-    msg!("Amount in game vault: {}", ctx.accounts.game_vault.amount);
     let won_by_house = ctx.accounts.game_vault.amount - amount_owed_to_winners;
 
     if won_by_house > 0 {
@@ -82,20 +93,20 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         )?;
     }
 
-    let account_infos = [
-        ctx.accounts.player_account_1.to_account_info(),
-        ctx.accounts.player_account_2.to_account_info(),
-        ctx.accounts.player_account_3.to_account_info(),
-        ctx.accounts.player_account_4.to_account_info(),
-        ctx.accounts.player_account_5.to_account_info(),
-        ctx.accounts.player_account_6.to_account_info(),
-        ctx.accounts.player_account_7.to_account_info(),
-    ];
-
     let mut total_payouts = 0;
     let mut amount_to_pay: HashMap<Pubkey, u64> = HashMap::new();
 
-    for (i, account) in account_infos.iter().enumerate() {
+    for i in 0..7 {
+        let account = match i {
+            0 => ctx.accounts.player_account_1.to_account_info(),
+            1 => ctx.accounts.player_account_2.to_account_info(),
+            2 => ctx.accounts.player_account_3.to_account_info(),
+            3 => ctx.accounts.player_account_4.to_account_info(),
+            4 => ctx.accounts.player_account_5.to_account_info(),
+            5 => ctx.accounts.player_account_6.to_account_info(),
+            6 => ctx.accounts.player_account_7.to_account_info(),
+            _ => ctx.accounts.player_account_1.to_account_info(),
+        };
         if account.key == ctx.accounts.signer.key {
             continue;
         }
@@ -108,12 +119,8 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
         if user_bet.claimed {
             continue;
         }
+        if user_bet.side != 2 {
 
-        msg!(
-            "adding user record, amount: {}, side: {}",
-            user_bet.amount,
-            user_bet.side == game.get_winner()
-        );
         match i {
             0 => {
                 ctx.accounts
@@ -151,6 +158,7 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
                     .add_bet_record(user_bet.amount, user_bet.side == game.get_winner());
             }
             _ => {}
+        }
         }
         let payout_amount = game.calculate_winning_amount(user_bet.amount, user_bet.side);
         game.mark_bet_claimed(*account.key)?;

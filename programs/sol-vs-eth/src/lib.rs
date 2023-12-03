@@ -130,8 +130,9 @@ mod mulberry_quick_bets {
     pub fn create_airdrop_account(
         ctx: Context<CreateAirdropAccount>,
         discord_id: u64,
+        mlists : u16
     ) -> Result<()> {
-        handle_create_airdrop_account(ctx, discord_id)
+        handle_create_airdrop_account(ctx, discord_id, mlists)
     }
 
     pub fn claim_airdrop(ctx: Context<ClaimAirdrop>, discord_id: u64) -> Result<()> {
@@ -176,6 +177,10 @@ mod mulberry_quick_bets {
     pub fn restock(ctx: Context<RestockItems>, amount: u8,price: u8,
                    limit_per_user: u8, edition: u8, item_id: u8) -> Result<()> {
         handle_restock(ctx, amount,price, limit_per_user, edition, item_id)
+    }
+
+    pub fn change_mlists_count(ctx: Context<ChangeMlistsCount>,discordId: u64, mlist_count : u16) -> Result<()> {
+        handle_change_mlists_count(ctx, discordId, mlist_count)
     }
 
 }

@@ -15,7 +15,7 @@ pub fn handle_place_bet(ctx: Context<PlaceBet>, bet_size: u64, side: u8) -> Resu
     let payer = &ctx.accounts.payer;
 
     require!(
-        game.betting_active(global_state.betting_time)?,
+        game.anticipating_start == 0,
         QuickBetsErrors::BettingInactive
     );
 

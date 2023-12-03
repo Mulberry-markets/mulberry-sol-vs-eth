@@ -305,7 +305,6 @@ impl User {
     }
 
     pub fn add_bet_record(&mut self, bet_size: u64, win: bool) {
-        msg!("adding bet record: {}, {}", bet_size, win);
         self.last_game_bet_size = bet_size;
         if win {
             self.current_win_streak += 1;

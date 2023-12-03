@@ -23,18 +23,44 @@ pub fn handle_reset_airdrop(ctx: Context<ResetAirdrop>, amount: u64) -> Result<(
 pub fn handle_create_airdrop_account(
     ctx: Context<CreateAirdropAccount>,
     discord_id: u64,
+    mlists: u16,
 ) -> Result<()> {
     ctx.accounts.user_airdrop_account.last_claimed = 0;
+    ctx.accounts.user_airdrop_account.mlists_count = mlists;
     Ok(())
 }
 
+pub fn handle_change_mlists_count(
+    ctx: Context<ChangeMlistsCount>,
+    discordId: u64,
+    mlist_count: u16,
+) -> Result<()> {
+    if ctx.accounts.admin.key().to_string() != REDEEMER_WALLET {
+        return Err(QuickBetsErrors::Unauthorized.into());
+    }
+    ctx.accounts.user_airdrop_account.mlists_count = mlist_count;
+    Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction(discord_id: u64)]
+pub struct ChangeMlistsCount<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut, seeds = [b"airdrop_account",  discord_id.to_le_bytes().as_slice()], bump)]
+    pub user_airdrop_account: Account<'info, UserAirdropAccount>,
+}
+
 pub fn handle_claim_reward(ctx: Context<ClaimAirdrop>, discord_id: u64) -> Result<()> {
+    let airdrop = &mut ctx.accounts.airdrop;
+    let user_airdrop_account = &mut ctx.accounts.user_airdrop_account;
     if ctx.accounts.admin.key().to_string() != REDEEMER_WALLET {
         return Err(QuickBetsErrors::Unauthorized.into());
     }
 
-    let airdrop = &mut ctx.accounts.airdrop;
-    let user_airdrop_account = &mut ctx.accounts.user_airdrop_account;
+    if user_airdrop_account.mlists_count == 0 {
+        return Err(QuickBetsErrors::NoMlists.into());
+    }
 
     require!(
         user_airdrop_account.last_claimed < airdrop.current_airdrop,
@@ -50,7 +76,10 @@ pub fn handle_claim_reward(ctx: Context<ClaimAirdrop>, discord_id: u64) -> Resul
             to: ctx.accounts.receiver.to_account_info().clone(),
         },
     );
-    system_program::transfer(cpi_context, airdrop.amount)?;
+    system_program::transfer(
+        cpi_context,
+        airdrop.amount * user_airdrop_account.mlists_count as u64,
+    )?;
 
     Ok(())
 }
@@ -77,7 +106,7 @@ pub struct ResetAirdrop<'info> {
 pub struct CreateAirdropAccount<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(init, seeds=[b"airdrop_account", discord_id.to_le_bytes().as_slice()],bump, payer = signer, space = 12)]
+    #[account(init, seeds=[b"airdrop_account", discord_id.to_le_bytes().as_slice()],bump, payer = signer, space = 20)]
     pub user_airdrop_account: Account<'info, UserAirdropAccount>,
     pub system_program: Program<'info, System>,
 }
@@ -106,4 +135,5 @@ pub struct Airdrop {
 #[account]
 pub struct UserAirdropAccount {
     pub last_claimed: u16,
+    pub mlists_count: u16,
 }
