@@ -94,13 +94,28 @@ pub fn handle_restock(
     if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
         return Err(QuickBetsErrors::Unauthorized.into());
     }
-    ctx.accounts.item.quantity_left += amount;
+    ctx.accounts.item.quantity_left = amount;
     ctx.accounts.item.total_quantity += amount;
     ctx.accounts.item.price = price;
     ctx.accounts.item.limit_per_user = limit_per_user;
     Ok(())
 }
 
+pub fn handle_add_balance(ctx: Context<AddBalance>, amount: u16) -> Result<()> {
+    if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
+        return Err(QuickBetsErrors::Unauthorized.into());
+    }
+    ctx.accounts.user_account.total_points += amount;
+    Ok(())
+}
+
+pub fn handle_deduct_balance(ctx: Context<DeductBalance>, amount: u16) -> Result<()> {
+    if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
+        return Err(QuickBetsErrors::Unauthorized.into());
+    }
+    ctx.accounts.user_account.total_points -= amount;
+    Ok(())
+}
 #[derive(Accounts)]
 #[instruction(limit_per_user: u8, edition: u8, item_id: u8)]
 pub struct ChangeLimitPerUser<'info> {
@@ -125,6 +140,16 @@ pub struct RestockItems<'info> {
 
 #[derive(Accounts)]
 pub struct AddBalance<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    #[account(mut)]
+    pub user_account: Account<'info, User>,
+}
+
+#[derive(Accounts)]
+pub struct DeductBalance<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>,
     #[account(mut)]
     pub user_account: Account<'info, User>,
 }

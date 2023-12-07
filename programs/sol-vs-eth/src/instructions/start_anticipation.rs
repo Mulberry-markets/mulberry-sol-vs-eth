@@ -13,8 +13,8 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
     let global_state = &mut ctx.accounts.global_state;
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
+    require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
 
-    msg!("anticipation start : {}", game.betting_start);
     msg!("current time: {} ", Clock::get()?.unix_timestamp);
     // the + 1 at the end is the game allowing a margin of error of 1 second,
     // most games should still end at the exact time

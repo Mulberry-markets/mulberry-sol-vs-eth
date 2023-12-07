@@ -13,6 +13,7 @@ declare_id!("6gbfSJq7YN6To7TqYhHpZRh22P33MTtc47EAUr9fEYKM");
 
 #[program]
 mod mulberry_quick_bets {
+    use crate::state::GameStatus;
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -183,6 +184,22 @@ mod mulberry_quick_bets {
         handle_change_mlists_count(ctx, discordId, mlist_count)
     }
 
+    pub fn add_balance(ctx: Context<AddBalance>, amount: u16) -> Result<()> {
+        handle_add_balance(ctx, amount)
+    }
+
+    pub fn deduct_balance(ctx: Context<DeductBalance>, amount: u16) -> Result<()> {
+        handle_deduct_balance(ctx, amount)
+    }
+
+
+
+}
+
+#[derive(Accounts)]
+pub struct MarkSettled<'info> {
+    #[account(mut)]
+    global_state: Account<'info, GlobalState>,
 }
 
 #[derive(Accounts)]

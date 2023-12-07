@@ -62,4 +62,6 @@ pub enum QuickBetsErrors {
     LimitReached,
     #[msg("No Mlists")]
     NoMlists,
+    #[msg("Game not settled")]
+    GameNotSettled,
 }

@@ -14,7 +14,9 @@ pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
 
     let game = &mut ctx.accounts.game;
 
-
+    if !game.is_settled {
+        return err!(QuickBetsErrors::GameNotSettled);
+    }
     for i in ctx.accounts.global_state.game_records.iter() {
         if i.game_address == game.key() {
             return err!(QuickBetsErrors::GameNotClosed);
@@ -23,16 +25,6 @@ pub fn handle_close_game(ctx: Context<CloseGame>) -> Result<()> {
 
     ctx.accounts.global_state.to_close = Pubkey::default();
 
-    // let bump = *ctx.bumps.get("global_auth_pda").unwrap();
-    // let seeds: &[&[&[u8]]] = &[&[GLOBAL_AUTH_SEED, &[bump]]];
-    // transfer_tokens(
-    //     ctx.accounts.game_vault.to_account_info(),
-    //     ctx.accounts.house_wallet.to_account_info(),
-    //     ctx.accounts.global_auth_pda.to_account_info(),
-    //     ctx.accounts.token_program.to_account_info(),
-    //     ctx.accounts.game_vault.amount,
-    //     Some(seeds),
-    // )?;
 
 
     require!(game.check_all_bets_claimed(), QuickBetsErrors::BetsNotClaimed);
