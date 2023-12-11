@@ -10,6 +10,7 @@ pub fn handle_create_raffle(
     price: u16,
     total_quantity: u16,
     limit_per_user: u16,
+    end_time: u64,
 ) -> Result<()> {
     if ctx.accounts.admin.key.to_string() != ADMIN_WALLETS {
         return Err(QuickBetsErrors::Unauthorized.into());
@@ -22,6 +23,7 @@ pub fn handle_create_raffle(
     item.total_quantity = total_quantity;
     item.quantity_left = total_quantity;
     item.limit_per_user = limit_per_user;
+    item.end_time = end_time;
     Ok(())
 }
 
@@ -38,6 +40,9 @@ pub fn handle_buy_raffle_tickets(
 
     if item.quantity_left < tickets_amount {
         return Err(QuickBetsErrors::SoldOut.into());
+    }
+    if item.end_time < Clock::get()?.unix_timestamp as u64 {
+        return Err(QuickBetsErrors::RaffleEnded.into());
     }
     if ctx.accounts.user_item_account.total_bought as u16 >= item.limit_per_user
         && item.limit_per_user != 0
@@ -132,6 +137,7 @@ pub struct RaffleItem {
     pub limit_per_user: u16,
     pub _padding: [u8; 6],
     pub entrants: [Entry; 200],
+    pub end_time: u64,
 }
 
 #[zero_copy]

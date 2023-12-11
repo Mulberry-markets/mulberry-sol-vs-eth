@@ -14,6 +14,7 @@ pub fn handle_start_anticipation(ctx: Context<StartAnticipation>) -> Result<()> 
 
     global_state.confirm_crank_admin(&ctx.accounts.signer)?;
     require!(!game.is_settled, QuickBetsErrors::BetAlreadySettled);
+    require!(!game.anticipating_start > 0, QuickBetsErrors::GameInProgress);
 
     msg!("current time: {} ", Clock::get()?.unix_timestamp);
     // the + 1 at the end is the game allowing a margin of error of 1 second,

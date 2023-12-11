@@ -21,13 +21,15 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     require!(
         game.anticipating_start > 0,
-        QuickBetsErrors::AnticipationTimeTooSoon
+        QuickBetsErrors::GameNotStarted
     );
 
     if game.anticipating_start + global_state.anticipation_time
         > Clock::get()?.unix_timestamp as u64 + MARGIN_OF_ERROR
     {
-        return Err(QuickBetsErrors::AnticipationTimeTooSoon.into());
+        msg!("current time: {} ", Clock::get()?.unix_timestamp);
+        msg!("anticipation start: {}", game.anticipating_start);
+        return Err(QuickBetsErrors::ResolutionTooSoon.into());
     }
 
     if Pubkey::from_str(SOL_ORACLE).unwrap() != *ctx.accounts.sol_feed.key {
@@ -40,7 +42,7 @@ pub fn handle_resolve_game(ctx: Context<ResolveBet>) -> Result<()> {
 
     let mut sol_price = 0;
     let mut eth_price = 0;
-    if game.anticipating_start + global_state.anticipation_time + 15
+    if game.anticipating_start + global_state.anticipation_time + 10
         < Clock::get()?.unix_timestamp as u64
     {
         msg!("game too took long to be resolved, refunding participants");

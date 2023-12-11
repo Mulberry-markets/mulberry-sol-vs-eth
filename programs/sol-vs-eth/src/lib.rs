@@ -13,7 +13,6 @@ declare_id!("6gbfSJq7YN6To7TqYhHpZRh22P33MTtc47EAUr9fEYKM");
 
 #[program]
 mod mulberry_quick_bets {
-    use crate::state::GameStatus;
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -154,8 +153,9 @@ mod mulberry_quick_bets {
         price: u16,
         total_quantity: u16,
         limit_per_user: u16,
+        end_time: u64,
     ) -> Result<()> {
-        handle_create_raffle(ctx, raffle_id, price, total_quantity, limit_per_user)
+        handle_create_raffle(ctx, raffle_id, price, total_quantity, limit_per_user, end_time)
     }
 
     pub fn buy_raffle_tickets(

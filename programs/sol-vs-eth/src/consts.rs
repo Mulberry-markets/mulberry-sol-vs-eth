@@ -11,6 +11,6 @@ pub const SOL_ORACLE: &str = "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG";
 
 pub const ADMIN_WALLETS : &str= &"5GrCgeZRNtGgKe7ezhSo5vU6ug68JsrC1FCo9246DBgg";
 
-pub const MARGIN_OF_ERROR : u64= 1;
+pub const MARGIN_OF_ERROR : u64= 2;
 
 pub const REDEEMER_WALLET : &str = &"F25WqA7xPLZboJ9Ydad4Z9wGrw25gawkK9jai8nbRsr7";

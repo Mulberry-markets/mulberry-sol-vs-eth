@@ -13,7 +13,7 @@ pub enum QuickBetsErrors {
     #[msg("You already have a bet on the other side.")]
     AlreadyBet,
     #[msg("Anticipation period ending too soon")]
-    AnticipationTimeTooSoon,
+    ResolutionTooSoon,
     #[msg("betting period ending too soon")]
     BettingTimeTooSoon,
     #[msg("Bet already settled")]
@@ -64,4 +64,8 @@ pub enum QuickBetsErrors {
     NoMlists,
     #[msg("Game not settled")]
     GameNotSettled,
+    #[msg("Game not started")]
+    GameNotStarted,
+    #[msg("raffle ended")]
+    RaffleEnded
 }
